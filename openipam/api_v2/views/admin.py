@@ -8,12 +8,8 @@ from .base import LogsPagination
 from ..serializers.admin import (
     LogEntrySerializer,
     EmailLogSerializer,
-    DNSLogSerializer,
-    HostLogsSerializer,
-    AddressLogsSerializer,
-    UserLogsSerializer,
 )
-from openipam.log.models import EmailLog, DnsRecordsLog, HostLog, AddressLog, UserLog
+from openipam.log.models import EmailLog
 from ..permissions import APIAdminPermission
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -43,32 +39,4 @@ class EmailLogsList(ListAPIView):
     permission_classes = [APIAdminPermission]
     queryset = EmailLog.objects.all().order_by("-when")
     serializer_class = EmailLogSerializer
-    pagination_class = LogsPagination
-
-
-class DNSLogsList(ListAPIView):
-    permission_classes = [APIAdminPermission]
-    queryset = DnsRecordsLog.objects.all()
-    serializer_class = DNSLogSerializer
-    pagination_class = LogsPagination
-
-
-class HostLogsList(ListAPIView):
-    permission_classes = [APIAdminPermission]
-    queryset = HostLog.objects.all()
-    serializer_class = HostLogsSerializer
-    pagination_class = LogsPagination
-
-
-class AddressLogsList(ListAPIView):
-    permission_classes = [APIAdminPermission]
-    queryset = AddressLog.objects.all()
-    serializer_class = AddressLogsSerializer
-    pagination_class = LogsPagination
-
-
-class UserLogsList(ListAPIView):
-    permission_classes = [APIAdminPermission]
-    queryset = UserLog.objects.all()
-    serializer_class = UserLogsSerializer
     pagination_class = LogsPagination

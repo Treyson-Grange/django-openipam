@@ -170,8 +170,8 @@ export const useApi = () => {
       },
     },
     logs: {
-      get: requestGenerator(HttpMethod.GET, "admin/logs/"),
-      getEmails: requestGenerator(HttpMethod.GET, "admin/email-logs/"),
+      get: requestGenerator(HttpMethod.GET, "logs/"),
+      getEmails: requestGenerator(HttpMethod.GET, "logs/email/"),
     },
     dhcpGroups: {
       get: requestGenerator(HttpMethod.GET, "dhcp-groups/"),
