@@ -60,8 +60,8 @@ export const useDomainsTable = (p: {
     localStorage.getItem("domainTableColumns")
       ? JSON.parse(localStorage.getItem("domainTableColumns")!)
       : {
-          changed: false,
-        }
+        changed: false,
+      }
   );
   useEffect(() => {
     localStorage.setItem(
@@ -97,32 +97,32 @@ export const useDomainsTable = (p: {
   const columns = [
     ...(auth?.is_ipamadmin
       ? ActionsColumn({
-          size: 100,
-          data,
-          pageSize,
-          setPageSize,
-          enableSelection: true,
-          onSelectColumns: p.onSelectColumns,
-          onAdd: () => {
-            p.setShowAddDomain((prev: boolean) => !prev);
-          },
-          onView: (row: any) => {
-            navigate(`/domains/${row.name}`);
-          },
-          onEdit: (row: any) => {
-            p.setEditDomain({
-              show: true,
-              domainData: row,
-            });
-          },
-        })
+        size: 100,
+        data,
+        pageSize,
+        setPageSize,
+        enableSelection: true,
+        onSelectColumns: p.onSelectColumns,
+        onAdd: () => {
+          p.setShowAddDomain((prev: boolean) => !prev);
+        },
+        onView: (row: any) => {
+          navigate(`/domains/${row.name}`);
+        },
+        onEdit: (row: any) => {
+          p.setEditDomain({
+            show: true,
+            domainData: row,
+          });
+        },
+      })
       : ActionsColumn({
-          size: 90,
-          data,
-          onView: (row: any) => {
-            navigate(`/domains/${row.name}`);
-          },
-        })),
+        size: 90,
+        data,
+        onView: (row: any) => {
+          navigate(`/domains/${row.name}`);
+        },
+      })),
     columnHelper.group({
       id: "Identification",
       header: "Identification",

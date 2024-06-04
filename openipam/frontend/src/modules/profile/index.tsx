@@ -87,7 +87,7 @@ const initActionModule = {
   show: false as boolean,
   data: undefined as Host[] | undefined,
   title: "" as string,
-  onSubmit: (() => {}) as ((data: Host[]) => void) | undefined,
+  onSubmit: (() => { }) as ((data: Host[]) => void) | undefined,
   children: (<></>) as ReactNode,
 };
 
@@ -99,7 +99,7 @@ type ActionModule = Omit<typeof initActionModule, "onSubmit"> & {
 const initRenewModule = {
   show: false as boolean,
   data: undefined as Host[] | undefined,
-  refetch: (() => {}) as VoidFunction,
+  refetch: (() => { }) as VoidFunction,
 };
 
 type RenewModule = typeof initRenewModule;

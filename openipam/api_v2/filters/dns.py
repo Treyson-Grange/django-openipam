@@ -1,4 +1,5 @@
 """Filters for dns records."""
+
 from django.db.models import Q
 from rest_framework import filters
 from openipam.dns.models import DhcpDnsRecord, DnsType, Domain, DnsRecord
@@ -14,7 +15,10 @@ class ContentFilter(CharFilter):
     def filter(self, qs, value):
         if value:
             try:
-                qs = qs.filter(Q(ip_content__address__icontains=value) | Q(text_content__icontains=value)).distinct()
+                qs = qs.filter(
+                    Q(ip_content__address__icontains=value)
+                    | Q(text_content__icontains=value)
+                ).distinct()
             except ValidationError:
                 qs = qs.none()
         return qs
@@ -33,11 +37,11 @@ class DnsFilter(FilterSet):
 
     def filter_content(self, queryset, _, value):
         """Filter based on content."""
-        print(value)
         if value:
             try:
                 queryset = queryset.filter(
-                    Q(ip_content__address__istartswith=value) | Q(text_content__icontains=value)
+                    Q(ip_content__address__istartswith=value)
+                    | Q(text_content__icontains=value)
                 ).distinct()
             except ValidationError:
                 queryset = queryset.none()

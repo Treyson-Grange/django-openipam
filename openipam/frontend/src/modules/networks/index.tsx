@@ -69,7 +69,7 @@ const initActionModule = {
   show: false as boolean,
   data: undefined as Network[] | undefined,
   title: "" as string,
-  onSubmit: (() => {}) as ((data: Network[]) => void) | undefined,
+  onSubmit: (() => { }) as ((data: Network[]) => void) | undefined,
   children: (<></>) as ReactNode,
 };
 

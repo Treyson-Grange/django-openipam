@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect } from "react";
 
 export const ThemeContext = React.createContext({
   theme: localStorage.getItem("theme") ?? "light",
-  setTheme: (theme: string) => {},
+  setTheme: (theme: string) => { },
 });
 
 function ThemeProvider({ children }: { children: React.ReactNode }) {

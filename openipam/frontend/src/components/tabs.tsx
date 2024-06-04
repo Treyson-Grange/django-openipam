@@ -16,11 +16,10 @@ export const Tabs = (p: {
         {p.tabs.map((t) => (
           <button
             key={t}
-            className={`tab btn btn-ghost btn-outline bg-base-300 ${
-              p.tab === t
+            className={`tab btn btn-ghost btn-outline bg-base-300 ${p.tab === t
                 ? "btn-primary btn-disabled text-base-content"
                 : "btn-ghost-secondary text-base-content"
-            }`}
+              }`}
             disabled={p.tab === t}
             onClick={() => p.setTab(t)}
           >

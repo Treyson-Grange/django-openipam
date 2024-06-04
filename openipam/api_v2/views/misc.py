@@ -38,17 +38,27 @@ class AttributeViewSet(lib_viewsets.ReadOnlyModelViewSet):
 
 class DashboardAPIView(APIView):
     def get(self, request, format=None, **kwargs):
-        wireless_networks = Network.objects.filter(dhcp_group__name__in=["aruba_wireless", "aruba_wireless_eastern"])
-        wireless_networks_available_qs = [Q(address__net_contained=network.network) for network in wireless_networks]
+        wireless_networks = Network.objects.filter(
+            dhcp_group__name__in=["aruba_wireless", "aruba_wireless_eastern"]
+        )
+        wireless_networks_available_qs = [
+            Q(address__net_contained=network.network) for network in wireless_networks
+        ]
 
         data = (
             (
                 "Static Hosts",
-                "%s" % Host.objects.filter(addresses__isnull=False, expires__gte=timezone.now()).count(),
+                "%s"
+                % Host.objects.filter(
+                    addresses__isnull=False, expires__gte=timezone.now()
+                ).count(),
             ),
             (
                 "Dynamic Hosts",
-                "%s" % Host.objects.filter(pools__isnull=False, expires__gte=timezone.now()).count(),
+                "%s"
+                % Host.objects.filter(
+                    pools__isnull=False, expires__gte=timezone.now()
+                ).count(),
             ),
             (
                 "Active Leases",
@@ -77,7 +87,9 @@ class DashboardAPIView(APIView):
             ("DNS MX Records", DnsRecord.objects.filter(dns_type__name="MX").count()),
             (
                 "Active Users Within 1 Year",
-                User.objects.filter(last_login__gte=(timezone.now() - timedelta(days=365))).count(),
+                User.objects.filter(
+                    last_login__gte=(timezone.now() - timedelta(days=365))
+                ).count(),
             ),
         )
 

@@ -11,54 +11,54 @@ export const Navigation = () => {
   const themes = useThemes();
   return (
     <div
-      className={`${
-        theme === "dark" ? "bg-gray-800" : "bg-base-100"
-      } min-h-screen min-w-screen w-full h-full`}
+      className={`${theme === "dark" ? "bg-gray-800" : "bg-base-100"
+        } min-h-screen min-w-screen w-full h-full`}
       data-theme={theme}
     >
       <div className="w-full navbar menu menu-horizontal items-center flex flex-row justify-between bg-base-300">
         <div className="flex-flex-row justify-start">
-          <button className="btn btn-ghost btn-primary">
-            <Link className="link-hover font-semibold text-lg" to="/">
+
+          <Link className="link-hover font-semibold" to="/">
+            <button className="btn btn-ghost btn-primary text-lg">
               Home
-            </Link>
-          </button>
-          <button className="btn btn-ghost btn-primary">
-            <Link className="link-hover font-semibold text-lg" to="/hosts">
+            </button>
+          </Link>
+          <Link className="link-hover font-semibold" to="/hosts">
+            <button className="btn btn-ghost btn-primary text-lg">
               Hosts
-            </Link>
-          </button>
-          <button className="btn btn-ghost btn-primary">
-            <Link className="link-hover font-semibold text-lg" to="/domains">
+            </button>
+          </Link>
+          <Link className="link-hover font-semibold" to="/domains">
+            <button className="btn btn-ghost btn-primary text-lg">
               Domains
-            </Link>
-          </button>
+            </button>
+          </Link>
           {auth?.is_ipamadmin && (
             <>
-              <button className="btn btn-ghost btn-primary">
-                <Link
-                  className="link-hover font-semibold text-lg"
-                  to="/networks"
-                >
+              <Link
+                className="link-hover font-semibold"
+                to="/networks"
+              >
+                <button className="btn btn-ghost btn-primary text-lg">
                   Networks
-                </Link>
-              </button>
-              <button className="btn btn-ghost btn-primary">
-                <Link
-                  className="link-hover font-semibold text-lg"
-                  to="/admin/logs"
-                >
+                </button>
+              </Link>
+              <Link
+                className="link-hover font-semibold"
+                to="/admin/logs"
+              >
+                <button className="btn btn-ghost btn-primary text-lg">
                   Logs
-                </Link>
-              </button>
-              <button className="btn btn-ghost btn-primary">
-                <Link
-                  className="link-hover font-semibold text-lg"
-                  to="/admin/users"
-                >
+                </button>
+              </Link>
+              <Link
+                className="link-hover font-semibold"
+                to="/admin/users"
+              >
+                <button className="btn btn-ghost btn-primary text-lg">
                   Users
-                </Link>
-              </button>
+                </button>
+              </Link>
             </>
           )}
         </div>

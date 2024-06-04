@@ -21,7 +21,7 @@ export const Stats = () => {
   return (
     <div className="flex w-full md:max-w-[100%] lg:max-w-[100%] flex-row gap-4 flex-wrap justify-center it content-center mt-4">
       <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
-        <div className="card-title text-center">Hosts</div>
+        <div className="card-title mb-4 text-center">Hosts</div>
         <div className="stats">
           {Object.entries(stats)
             .splice(0, 2)
@@ -34,7 +34,7 @@ export const Stats = () => {
         </div>
       </div>
       <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
-        <div className="card-title text-center">Leases</div>
+        <div className="card-title mb-4 mb-4 text-center">Leases</div>
         <div className="stats">
           {Object.entries(stats)
             .splice(2, 2)
@@ -47,7 +47,7 @@ export const Stats = () => {
         </div>
       </div>
       <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
-        <div className="card-title text-center">Networks</div>
+        <div className="card-title mb-4 text-center">Networks</div>
         <div className="stats">
           {Object.entries(stats)
             .splice(4, 2)
@@ -60,7 +60,7 @@ export const Stats = () => {
         </div>
       </div>
       <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
-        <div className="card-title text-center">DNS Records</div>
+        <div className="card-title mb-4 text-center">DNS Records</div>
         <div className="stats">
           {Object.entries(stats)
             .splice(6, 3)
@@ -73,7 +73,7 @@ export const Stats = () => {
         </div>
       </div>
       <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
-        <div className="card-title text-center">Users</div>
+        <div className="card-title mb-4 text-center">Users</div>
         <div className="stats">
           {Object.entries(stats)
             .splice(9)

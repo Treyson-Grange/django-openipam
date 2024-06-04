@@ -5,11 +5,11 @@ const screenWidth = window.screen.width;
 const screenHeight = window.screen.height;
 export const NotFoundPage = () => {
   return (
-    <div className={`w-[${screenWidth}px] h-[${screenHeight}px]`}>
+    <div className={`w-[${screenWidth}px] h-[${screenHeight - 100}px]`}>
       <div className="font-bold text-4xl w-[80%] m-auto text-center mt-20">
         404 NOT FOUND
       </div>
-      <img src={NotFound} className="w-[50%] h-[50%] m-auto image-full" />
+      <img src={NotFound} className="w-[40%] h-[40%] m-auto image-full" />
       <div className="font-bold text-2xl w-[80%] m-auto">
         You thought this mission to the moon would be a quick six month thing.
         Your neighbor offered to look after your dog. Your high school math

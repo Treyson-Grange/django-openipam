@@ -182,7 +182,7 @@ class NetworkViewSet(APIModelViewSet):
             network.tags.add(tags)
             network.save()
             return Response(status=200, data={"detail": "Network tagged."})
-        except Exception:
+        except Exception as e:
             return Response(status=400, data={"detail": "Invalid tags."})
 
     # resize network

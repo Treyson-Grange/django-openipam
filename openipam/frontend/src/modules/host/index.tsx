@@ -25,9 +25,9 @@ export const HostPage = () => {
     () =>
       Boolean(
         auth?.is_ipamadmin ||
-          (auth &&
-            (HostInfo?.user_owners.includes(auth?.username) ||
-              HostInfo?.group_owners.some((g) => auth.groups.includes(g))))
+        (auth &&
+          (HostInfo?.user_owners.includes(auth?.username) ||
+            HostInfo?.group_owners.some((g) => auth.groups.includes(g))))
       ),
     [auth, HostInfo]
   );
@@ -95,7 +95,7 @@ export const HostPage = () => {
     show: false,
     data: undefined,
     title: "",
-    onSubmit: () => {},
+    onSubmit: () => { },
     children: <></>,
   });
 
@@ -154,10 +154,10 @@ export const HostPage = () => {
               new Date(HostInfo?.expires ?? 0) < new Date()
                 ? "Expired"
                 : `${Math.ceil(
-                    (new Date(HostInfo?.expires ?? 0).getTime() -
-                      new Date().getTime()) /
-                      (1000 * 3600 * 24)
-                  )} Days Left`,
+                  (new Date(HostInfo?.expires ?? 0).getTime() -
+                    new Date().getTime()) /
+                  (1000 * 3600 * 24)
+                )} Days Left`,
           }}
         />
         <Tab tab={tab} name={"DNS"} props={"m-2"} data={HostInfo ?? {}}>

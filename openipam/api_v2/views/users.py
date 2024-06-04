@@ -6,7 +6,11 @@ from rest_framework.decorators import action
 from ..filters.users import UserFilterSet, AdvancedSearchFilter
 
 from .base import APIPagination
-from ..serializers.users import RestrictedUserSerializer, UserSerializer, GroupSerializer
+from ..serializers.users import (
+    RestrictedUserSerializer,
+    UserSerializer,
+    GroupSerializer,
+)
 from rest_framework import permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
@@ -22,7 +26,6 @@ from guardian.shortcuts import assign_perm, remove_perm
 from openipam.core.backends import IPAMLDAPBackend
 
 import gc
-from django.utils import timezone
 
 User = get_user_model()
 
@@ -51,12 +54,14 @@ class GroupView(generics.ListAPIView):
     pagination_class = APIPagination
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["name"]
 
     def filter_queryset(self, queryset):
         name = self.request.query_params.get("name", None)
         if name is not None:
             queryset = queryset.filter(name__icontains=name)
-        return super().filter_queryset(queryset)
+        return queryset
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -66,7 +71,11 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     pagination_class = APIPagination
     permission_classes = [permissions.DjangoModelPermissions]
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, AdvancedSearchFilter]
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.OrderingFilter,
+        AdvancedSearchFilter,
+    ]
     lookup_field = "username__iexact"
     filterset_class = UserFilterSet
     ordering_fields = ["username", "first_name", "last_name", "email", "is_active"]
@@ -118,7 +127,7 @@ class UserViewSet(viewsets.ModelViewSet):
         url_name="my-groups",
     )
     def my_groups(self, request):
-        """Return the current user."""
+        """Return the current users groups."""
         user = self.request.user
         return Response(user.groups.values_list("name", flat=True))
 
@@ -267,7 +276,9 @@ class UserViewSet(viewsets.ModelViewSet):
                 print(group)
 
             except Group.DoesNotExist:
-                return Response(status=404, data={"detail": f"Group {group} not found."})
+                return Response(
+                    status=404, data={"detail": f"Group {group} not found."}
+                )
         return Response(user.groups.values_list("name", flat=True), status=201)
 
     @groups.mapping.delete
@@ -282,5 +293,7 @@ class UserViewSet(viewsets.ModelViewSet):
             try:
                 Group.objects.get(name=group).user_set.remove(user)
             except Group.DoesNotExist:
-                return Response(status=404, data={"detail": f"Group {group} not found."})
+                return Response(
+                    status=404, data={"detail": f"Group {group} not found."}
+                )
         return Response(user.groups.values_list("name", flat=True))
