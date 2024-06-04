@@ -21,7 +21,11 @@ router.register(r"address-types", views.network.AddressTypeViewSet)
 urlpatterns = [
     path("", include(router.urls)),
     path("admin/logs/", views.admin.LogEntryList.as_view()),
+    path("admin/host-logs/", views.admin.HostLogsList.as_view()),
     path("admin/email-logs/", views.admin.EmailLogsList.as_view()),
+    path("admin/dns-logs/", views.admin.DNSLogsList.as_view()),
+    path("admin/address-logs/", views.admin.AddressLogsList.as_view()),
+    path("admin/user-logs/", views.admin.UserLogsList.as_view()),
     path("admin/stats/", misc.DashboardAPIView.as_view()),
     path("groups/", views.users.GroupView.as_view()),
 ]
