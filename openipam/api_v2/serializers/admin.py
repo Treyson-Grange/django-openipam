@@ -63,7 +63,8 @@ class DNSLogSerializer(serializers.ModelSerializer):
 
 class HostLogsSerializer(serializers.ModelSerializer):
     changed_by = serializers.SerializerMethodField()
-    changed_by_url = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
+    address_type = serializers.SerializerMethodField()
 
     def get_changed_by(self, obj: HostLog):
         return f"%s %s (%s)" % (
@@ -72,12 +73,22 @@ class HostLogsSerializer(serializers.ModelSerializer):
             obj.changed_by.username,
         )
 
-    def get_changed_by_url(self, obj: HostLog):
-        return f"/users/{obj.changed_by.username}/"
+    def get_description(self, obj: HostLog):
+        return obj.description
+
+    def get_address_type(self, obj: HostLog):
+        return obj.address_type
 
     class Meta:
         model = HostLog
-        fields = ["mac", "hostname", "changed", "changed_by", "changed_by_url"]
+        fields = [
+            "mac",
+            "hostname",
+            "description",
+            "address_type",
+            "changed",
+            "changed_by",
+        ]
 
 
 class AddressLogsSerializer(serializers.ModelSerializer):

@@ -2,6 +2,7 @@ from django_filters import rest_framework as filters
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from openipam.log.models import EmailLog, DnsRecordsLog, HostLog, AddressLog, UserLog
 from django.contrib.auth.models import Group
+from openipam.dns.models import DnsType
 
 
 class LogEntryFilterSet(filters.FilterSet):
@@ -55,6 +56,9 @@ class UserLogFilterSet(filters.FilterSet):
     email = filters.CharFilter(field_name="email")
     is_staff = filters.BooleanFilter(field_name="is_staff")
     is_superuser = filters.BooleanFilter(field_name="is_superuser")
+    is_ipamadmin = filters.BooleanFilter(
+        method="filter_is_ipamadmin", label="Is IPAM Admin"
+    )
 
     class Meta:
         model = UserLog
@@ -67,12 +71,24 @@ class UserLogFilterSet(filters.FilterSet):
             "is_superuser",
         ]
 
+    def filter_is_ipamadmin(self, queryset, name, value):
+        group = Group.objects.get(name="ipam-admins")
+        ipamadmin_usernames = group.user_set.values_list("username", flat=True)
+        if value:
+            return queryset.filter(username__in=ipamadmin_usernames)
+        else:
+            return queryset.exclude(username__in=ipamadmin_usernames)
+
 
 class DnsRecordsLogFilterSet(filters.FilterSet):
     name = filters.CharFilter(field_name="name")
-    dns_type = filters.CharFilter(field_name="dns_type")
-    ip_content = filters.CharFilter(field_name="ip_content")
+    dns_type = filters.CharFilter(method="filter_dns_type", label="DNS Type")
+    ip_content = filters.CharFilter(field_name="ip_content", label="IP Content")
 
     class Meta:
         model = DnsRecordsLog
         fields = ["name", "dns_type", "ip_content"]
+
+    def filter_dns_type(self, queryset, name, value):
+        converted = DnsType.objects.get(name=value)
+        return queryset.filter(type_id=converted.id)

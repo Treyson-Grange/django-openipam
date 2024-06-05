@@ -86,7 +86,6 @@ class UserLog(BaseLog):
         else:
             group = Group.objects.get(name="ipam-admins")
             users = [user.username for user in group.user_set.all()]
-            # assert False, users
             return True if self.username in users else False
 
     @cached_property
