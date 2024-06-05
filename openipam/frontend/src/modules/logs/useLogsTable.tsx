@@ -84,66 +84,66 @@ export const useLogsTable = () => {
     }),
     emailView
       ? columnHelper.group({
-          id: "Email Details",
-          header: "Email Details",
-          columns: [
-            {
-              id: "subject",
-              header: "Subject",
-              accessorFn: (row) => row.subject,
-              meta: {
-                filterType: "string",
-              },
+        id: "Email Details",
+        header: "Email Details",
+        columns: [
+          {
+            id: "subject",
+            header: "Subject",
+            accessorFn: (row) => row.subject,
+            meta: {
+              filterType: "string",
             },
-            {
-              id: "body",
-              header: "Body",
-              accessorFn: (row) => row.body?.slice(0, 50) + "...",
-              meta: {
-                filterType: "string",
-              },
+          },
+          {
+            id: "body",
+            header: "Body",
+            accessorFn: (row) => row.body?.slice(0, 50) + "...",
+            meta: {
+              filterType: "string",
             },
-          ],
-        })
+          },
+        ],
+      })
       : columnHelper.group({
-          id: "Other Details",
-          header: "Other Details",
-          columns: [
-            {
-              id: "action_flag",
-              header: "Action",
-              accessorFn: (row) => row.action_flag,
-              meta: {
-                filterType: "exact",
-                filterOptions: LogActions.map((action) => action),
-              },
+        id: "Other Details",
+        header: "Other Details",
+        columns: [
+          {
+            id: "action_flag",
+            header: "Action",
+            accessorFn: (row) => row.action_flag,
+            meta: {
+              filterType: "exact",
+              filterOptions: LogActions.map((action) => action),
             },
-            {
-              id: "action_time",
-              header: "Time",
-              accessorFn: (row) => row.action_time,
-              meta: {
-                filterType: "string",
-              },
+          },
+          {
+            id: "action_time",
+            header: "Time",
+            accessorFn: (row) => row.action_time,
+            meta: {
+              filterType: "string",
             },
-            {
-              id: "object_repr",
-              header: "Object",
-              accessorFn: (row) => row.object_repr,
-              meta: {
-                filterType: "string",
-              },
+          },
+          {
+            id: "object_repr",
+            header: "Object",
+            accessorFn: (row) => row.object_repr,
+            meta: {
+              filterType: "string",
             },
-            {
-              id: "change_message",
-              header: "Message",
-              accessorFn: (row) => row.change_message,
-              meta: {
-                filterType: "string",
-              },
+          },
+          {
+            id: "change_message",
+            header: "Message",
+            accessorFn: (row) => row.change_message,
+            meta: {
+              filterType: "string",
             },
-          ],
-        }),
+          },
+        ],
+      }),
   ];
 
   const table = CreateTable({

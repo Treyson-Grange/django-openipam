@@ -5,7 +5,7 @@ from django.contrib.admin.models import LogEntry
 from django_filters.rest_framework import DjangoFilterBackend
 from .base import APIModelViewSet, APIPagination
 from django_filters.rest_framework import DjangoFilterBackend
-from ..filters.admin import LogEntryFilterSet
+from ..filters.admin import LogEntryFilterSet, EmailLogFilterSet
 from ..filters.base import FieldChoiceFilter
 from ..permissions import APIAdminPermission
 from openipam.log.models import EmailLog, DnsRecordsLog, HostLog, AddressLog, UserLog
@@ -24,30 +24,20 @@ class LogViewSet(APIModelViewSet):
     """API endpoint that allows logs to be viewed"""
 
     queryset = LogEntry.objects.all().order_by("-action_time")
-    lookup_field = "id"
     serializer_class = LogEntrySerializer
     permission_classes = [APIAdminPermission]
-    filter_backends = [FieldChoiceFilter, DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend]
     filterset_class = LogEntryFilterSet
-    filter_field = "content_type__model"
-    filter_query_prefix = "include"
-    filter_choices = [
-        "host",
-        "dnsrecord",
-        "address",
-        "user",
-        "group",
-        "domain",
-    ]
-    filter_allow_unlisted = True
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = queryset.select_related("content_type").prefetch_related("user")
+        to = self.request.query_params.get("to", None)
+        if to:
+            queryset = queryset.filter(to=to)
         return queryset
 
     def get_serializer_class(self):
-        return LogEntrySerializer
+        return self.serializer_class
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
@@ -63,13 +53,20 @@ class LogViewSet(APIModelViewSet):
         host_serializer = HostLogsSerializer(page, many=True)
         return pagination.get_paginated_response(host_serializer.data)
 
-    @action(detail=False, methods=["get"])
+    @action(
+        detail=False,
+        methods=["get"],
+        queryset=EmailLog.objects.all(),
+        filter_backends=[DjangoFilterBackend],
+        serializer_class=EmailLogSerializer,
+        filterset_class=EmailLogFilterSet,
+    )
     def email(self, request: Request):
         """List all email logs."""
-        queryset = EmailLog.objects.all().order_by("-when")
+        email_logs = self.filter_queryset(self.get_queryset())
         pagination = APIPagination()
-        page = pagination.paginate_queryset(queryset, request)
-        dns_serializer = EmailLogSerializer(page, many=True)
+        page = pagination.paginate_queryset(email_logs, request)
+        dns_serializer = self.get_serializer(page, many=True)
         return pagination.get_paginated_response(dns_serializer.data)
 
     @action(detail=False, methods=["get"])
