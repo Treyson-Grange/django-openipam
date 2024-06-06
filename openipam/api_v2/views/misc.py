@@ -45,54 +45,55 @@ class DashboardAPIView(APIView):
             Q(address__net_contained=network.network) for network in wireless_networks
         ]
 
-        data = (
-            (
-                "Static Hosts",
-                "%s"
-                % Host.objects.filter(
+        data = {
+            "all_hosts": {
+                "count": Host.objects.all().count(),
+            },
+            "expired_hosts": {
+                "count": Host.objects.filter(expires__lte=timezone.now()).count(),
+            },
+            "static_hosts": {
+                "count": Host.objects.filter(
                     addresses__isnull=False, expires__gte=timezone.now()
                 ).count(),
-            ),
-            (
-                "Dynamic Hosts",
-                "%s"
-                % Host.objects.filter(
-                    pools__isnull=False, expires__gte=timezone.now()
+            },
+            "dynamic_hosts": {
+                "count": Host.objects.filter(
+                    pools__isnull=True, expires__gte=timezone.now()
                 ).count(),
-            ),
-            (
-                "Active Leases",
-                "%s" % Lease.objects.filter(ends__gte=timezone.now()).count(),
-            ),
-            ("Abandoned Leases", "%s" % Lease.objects.filter(abandoned=True).count()),
-            (
-                "Networks: (Total / Wireless)",
-                "%s / %s" % (Network.objects.all().count(), wireless_networks.count()),
-            ),
-            (
-                "Available Wireless Addresses",
-                Address.objects.filter(
+            },
+            "active_leases": {
+                "count": Lease.objects.filter(ends__gte=timezone.now()).count(),
+            },
+            "abandoned_leases": {
+                "count": Lease.objects.filter(abandoned=True).count(),
+            },
+            "networks_total": {
+                "count": Network.objects.all().count(),
+                "wireless_count": wireless_networks.count(),
+            },
+            "available_wireless_addresses": {
+                "count": Address.objects.filter(
                     reduce(operator.or_, wireless_networks_available_qs),
                     leases__ends__lt=timezone.now(),
                 ).count(),
-            ),
-            (
-                "DNS A Records",
-                DnsRecord.objects.filter(dns_type__name__in=["A", "AAAA"]).count(),
-            ),
-            (
-                "DNS CNAME Records",
-                DnsRecord.objects.filter(dns_type__name="CNAME").count(),
-            ),
-            ("DNS MX Records", DnsRecord.objects.filter(dns_type__name="MX").count()),
-            (
-                "Active Users Within 1 Year",
-                User.objects.filter(
+            },
+            "dns_a_records": {
+                "count": DnsRecord.objects.filter(
+                    dns_type__name__in=["A", "AAAA"]
+                ).count(),
+            },
+            "dns_cname_records": {
+                "count": DnsRecord.objects.filter(dns_type__name="CNAME").count(),
+            },
+            "dns_mx_records": {
+                "count": DnsRecord.objects.filter(dns_type__name="MX").count(),
+            },
+            "active_users_within_1_year": {
+                "count": User.objects.filter(
                     last_login__gte=(timezone.now() - timedelta(days=365))
                 ).count(),
-            ),
-        )
-
-        data = OrderedDict(data)
+            },
+        }
 
         return Response(data, status=status.HTTP_200_OK)
