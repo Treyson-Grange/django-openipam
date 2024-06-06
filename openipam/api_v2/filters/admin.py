@@ -16,7 +16,9 @@ class LogEntryFilterSet(filters.FilterSet):
             (DELETION, "Deletion"),
         ],
     )
-    user = filters.CharFilter(field_name="user__username")
+    user = filters.CharFilter(
+        field_name="user__username", label="User ID", lookup_expr="icontains"
+    )
 
     class Meta:
         model = LogEntry
@@ -24,7 +26,7 @@ class LogEntryFilterSet(filters.FilterSet):
 
 
 class EmailLogFilterSet(filters.FilterSet):
-    to = filters.CharFilter(field_name="to")
+    to = filters.CharFilter(field_name="to", label="To", lookup_expr="icontains")
 
     class Meta:
         model = EmailLog
@@ -32,7 +34,9 @@ class EmailLogFilterSet(filters.FilterSet):
 
 
 class HostLogFilterSet(filters.FilterSet):
-    hostname = filters.CharFilter(field_name="hostname")
+    hostname = filters.CharFilter(
+        field_name="hostname", label="Hostname", lookup_expr="icontains"
+    )
     mac = filters.CharFilter(field_name="mac")
 
     class Meta:
@@ -41,7 +45,9 @@ class HostLogFilterSet(filters.FilterSet):
 
 
 class AddressLogFilterSet(filters.FilterSet):
-    address = filters.CharFilter(field_name="address")
+    address = filters.CharFilter(
+        field_name="address",
+    )
     mac = filters.CharFilter(field_name="mac")
 
     class Meta:
@@ -50,10 +56,18 @@ class AddressLogFilterSet(filters.FilterSet):
 
 
 class UserLogFilterSet(filters.FilterSet):
-    username = filters.CharFilter(field_name="username")
-    first_name = filters.CharFilter(field_name="first_name")
-    last_name = filters.CharFilter(field_name="last_name")
-    email = filters.CharFilter(field_name="email")
+    username = filters.CharFilter(
+        field_name="username", label="Username", lookup_expr="icontains"
+    )
+    first_name = filters.CharFilter(
+        field_name="first_name", label="First Name", lookup_expr="icontains"
+    )
+    last_name = filters.CharFilter(
+        field_name="last_name", label="Last Name", lookup_expr="icontains"
+    )
+    email = filters.CharFilter(
+        field_name="email", label="Email", lookup_expr="icontains"
+    )
     is_staff = filters.BooleanFilter(field_name="is_staff")
     is_superuser = filters.BooleanFilter(field_name="is_superuser")
     is_ipamadmin = filters.BooleanFilter(
@@ -81,7 +95,7 @@ class UserLogFilterSet(filters.FilterSet):
 
 
 class DnsRecordsLogFilterSet(filters.FilterSet):
-    name = filters.CharFilter(field_name="name")
+    name = filters.CharFilter(field_name="name", label="Name", lookup_expr="icontains")
     dns_type = filters.CharFilter(method="filter_dns_type", label="DNS Type")
     ip_content = filters.CharFilter(field_name="ip_content", label="IP Content")
 
