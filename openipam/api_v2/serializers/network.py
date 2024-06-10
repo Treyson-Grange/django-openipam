@@ -178,10 +178,12 @@ class DhcpOptionToDhcpGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = DhcpOptionToDhcpGroup
         fields = (
-            "group",
+            "id",
             "option",
+            "group",
             "value",
             "changed_by",
+            "changed",
         )
 
 

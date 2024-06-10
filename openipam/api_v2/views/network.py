@@ -279,10 +279,10 @@ class AddressViewSet(viewsets.ReadOnlyModelViewSet):
         return self.queryset.filter(network__in=allowed_nets)
 
 
-class AddressPoolViewSet(viewsets.ReadOnlyModelViewSet):
+class AddressPoolViewSet(viewsets.ModelViewSet):
     """API endpoint that allows address pools to be viewed"""
 
-    queryset = Pool.objects.all().select_related("dhcp_group", "pool")
+    queryset = Pool.objects.all().select_related("dhcp_group")
     serializer_class = PoolSerializer
     # Only admins should have access to network data
     permission_classes = [base_permissions.IsAdminUser]
