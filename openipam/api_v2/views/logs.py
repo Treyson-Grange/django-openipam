@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.request import Request
 from django.contrib.admin.models import LogEntry
 from django_filters.rest_framework import DjangoFilterBackend
-from .base import APIModelViewSet, APIPagination
+from .base import APIModelViewSet, LogsPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from ..filters.admin import (
     LogEntryFilterSet,
@@ -34,6 +34,7 @@ class LogViewSet(APIModelViewSet):
     permission_classes = [APIAdminPermission]
     filter_backends = [DjangoFilterBackend]
     filterset_class = LogEntryFilterSet
+    pagination_class = LogsPagination
 
     def get_serializer_class(self):
         return self.serializer_class
@@ -55,7 +56,7 @@ class LogViewSet(APIModelViewSet):
         """List all host logs with filtering."""
         queryset = HostLog.objects.all()
         queryset = self.filter_queryset(queryset)
-        pagination = APIPagination()
+        pagination = LogsPagination()
         page = pagination.paginate_queryset(queryset, request)
         host_serializer = self.get_serializer(page, many=True)
         return pagination.get_paginated_response(host_serializer.data)
@@ -71,7 +72,7 @@ class LogViewSet(APIModelViewSet):
     def email(self, request: Request):
         """List all email logs."""
         queryset = self.filter_queryset(EmailLog.objects.all())
-        pagination = APIPagination()
+        pagination = LogsPagination()
         page = pagination.paginate_queryset(queryset, request)
         email_serializer = self.get_serializer(page, many=True)
         return pagination.get_paginated_response(email_serializer.data)
@@ -87,7 +88,7 @@ class LogViewSet(APIModelViewSet):
     def dns(self, request: Request):
         """List all DNS logs."""
         queryset = self.filter_queryset(DnsRecordsLog.objects.all())
-        pagination = APIPagination()
+        pagination = LogsPagination()
         page = pagination.paginate_queryset(queryset, request)
         dns_serializer = self.get_serializer(page, many=True)
         return pagination.get_paginated_response(dns_serializer.data)
@@ -103,7 +104,7 @@ class LogViewSet(APIModelViewSet):
     def address(self, request: Request):
         """List all address logs."""
         queryset = self.filter_queryset(AddressLog.objects.all())
-        pagination = APIPagination()
+        pagination = LogsPagination()
         page = pagination.paginate_queryset(queryset, request)
         address_serializer = self.get_serializer(page, many=True)
         return pagination.get_paginated_response(address_serializer.data)
@@ -119,7 +120,7 @@ class LogViewSet(APIModelViewSet):
     def user(self, request: Request):
         """List all user logs."""
         queryset = self.filter_queryset(UserLog.objects.all())
-        pagination = APIPagination()
+        pagination = LogsPagination()
         page = pagination.paginate_queryset(queryset, request)
         user_serializer = self.get_serializer(page, many=True)
         return pagination.get_paginated_response(user_serializer.data)

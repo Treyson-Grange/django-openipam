@@ -44,18 +44,18 @@ class IPAddressField(serializers.CharField):
 class ChangedBySerializer(serializers.ModelSerializer):
     """Serializer for the changed_by field."""
 
-    def create(self, validated_data):
-        """Create changed_by field."""
-        validated_data = self.context["request"].user
-        return super(ChangedBySerializer, self).create(validated_data)
-
     def update(self, instance, validated_data):
-        """Update changed_by field."""
-        validated_data = self.context["request"].user
-        return super(ChangedBySerializer, self).update(instance, validated_data)
+        """Update changed_by field with context user."""
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
     class Meta:
         """Meta class."""
 
         model = User
         fields = ("first_name", "last_name", "email", "username")
+        extra_kwargs = {
+            "username": {"validators": []},  # Avoid revalidating the username
+        }

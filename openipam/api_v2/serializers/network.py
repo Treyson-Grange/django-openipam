@@ -1,10 +1,14 @@
 """Serializers for network objects."""
 
 from openipam.api_v2.serializers.base import ChangedBySerializer
+from django.db import models
+from openipam.user.models import User
 from openipam.network.models import (
     Address,
     Building,
     DhcpGroup,
+    DhcpOption,
+    DhcpOptionToDhcpGroup,
     Vlan,
     Network,
     Pool,
@@ -16,9 +20,10 @@ from rest_framework.serializers import (
     ModelSerializer,
     Field,
     SerializerMethodField,
+    PrimaryKeyRelatedField,
 )
 from django.shortcuts import get_object_or_404
-import ipaddress
+import ipaddress, base64
 
 
 class VlanSerializer(ModelSerializer):
@@ -99,15 +104,96 @@ class SimpleNetworkSerializer(Field):
 
 
 class DhcpGroupSerializer(ModelSerializer):
-    """Serializer for dhcp group objects."""
+    """Serializer for DHCP group objects."""
 
-    changed_by = ChangedBySerializer()
+    changed_by = SerializerMethodField()
 
     class Meta:
-        """Meta class for dhcp group serializer."""
-
         model = DhcpGroup
         fields = "__all__"
+
+    def update(self, instance, validated_data):
+        changed_by_data = validated_data.pop("changed_by", None)
+        if changed_by_data:
+            changed_by_serializer = self.fields["changed_by"]
+            changed_by_instance = instance.changed_by
+            changed_by_serializer.update(changed_by_instance, changed_by_data)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+    def create(self, validated_data):
+        changed_by_data = validated_data.pop("changed_by", None)
+        if changed_by_data:
+            changed_by_instance = self.context["request"].user
+            validated_data["changed_by"] = changed_by_instance
+        return super().create(validated_data)
+
+    def get_changed_by(self, obj):
+        return obj.changed_by.username if obj.changed_by else None
+
+
+from rest_framework import serializers
+
+
+class DhcpOptionSerializer(serializers.ModelSerializer):
+    """Serializer for dhcp option objects."""
+
+    class Meta:
+        """Meta class for dhcp option serializer."""
+
+        model = DhcpOption
+        fields = "__all__"
+
+    def create(self, validated_data):
+        return super().create(validated_data)
+
+
+class BinaryDataField(serializers.Field):
+    def to_representation(self, obj):
+        return obj.hex()
+
+    def to_internal_value(self, data):
+        return bytes.fromhex(data)
+
+
+class DhcpOptionToDhcpGroupSerializer(serializers.ModelSerializer):
+    """Serializer for dhcp option to dhcp group objects."""
+
+    changed_by = serializers.SlugRelatedField(slug_field="username", read_only=True)
+    option = serializers.SlugRelatedField(
+        slug_field="name", queryset=DhcpOption.objects.all()
+    )
+    group = serializers.SlugRelatedField(
+        slug_field="name", queryset=DhcpGroup.objects.all()
+    )
+    value = BinaryDataField()
+
+    def create(self, validated_data):
+        changed_by = self.context["request"].user
+        validated_data["changed_by"] = changed_by
+        return super().create(validated_data)
+
+    class Meta:
+        model = DhcpOptionToDhcpGroup
+        fields = (
+            "group",
+            "option",
+            "value",
+            "changed_by",
+        )
+
+
+class DhcpOptionToDhcpGroupDeleteSerializer(ModelSerializer):
+    """Serializer for deleting dhcp options from a dhcp group."""
+
+    class Meta:
+        """Meta class for dhcp option to dhcp group delete serializer."""
+
+        model = DhcpOptionToDhcpGroup
+        fields = ("group", "option", "value")
+        read_only_fields = ("group", "option", "value")
 
 
 class SimpleDhcpGroupSerializer(Field):
@@ -233,3 +319,13 @@ class LeaseSerializer(ModelSerializer):
             "starts",
             "ends",
         )
+
+
+class BuildingSerializer(ModelSerializer):
+    """Serializer for building objects."""
+
+    class Meta:
+        """Meta class for building serializer."""
+
+        model = Building
+        fields = "__all__"

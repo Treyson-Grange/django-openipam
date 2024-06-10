@@ -7,6 +7,12 @@ export const Stats = () => {
   const auth = useAuth();
   const [stats, setStats] = useState<any>({});
 
+
+  type StatValue = {
+    count: number;
+    wireless_count?: number;
+  };
+
   useEffect(() => {
     if (auth?.is_ipamadmin) {
       api.admin.stats().then((res) => {
@@ -23,66 +29,81 @@ export const Stats = () => {
       <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
         <div className="card-title mb-4 text-center">Hosts</div>
         <div className="stats">
-          {/* {Object.entries(stats)
-            .splice(0, 2)
-            .map(([key, value]) => (
+          {(Object.entries(stats) as [string, StatValue][])
+            .splice(0, 4)
+            .map(([key, value]: [string, StatValue]) => (
               <div className="stat" key={Math.random()}>
                 <div className="stat-title">{key}</div>
-                <div className="stat-value">{value as string | number}</div>
+                <div className="stat-value">
+                  {value.count}
+                  {value.wireless_count !== undefined && ` / ${value.wireless_count}`}
+                </div>
               </div>
-            ))} */}
+            ))}
         </div>
       </div>
       <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
         <div className="card-title mb-4 mb-4 text-center">Leases</div>
         <div className="stats">
-          {/* {Object.entries(stats)
-            .splice(2, 2)
-            .map(([key, value]) => (
+          {(Object.entries(stats) as [string, StatValue][])
+            .splice(4, 2)
+            .map(([key, value]: [string, StatValue]) => (
               <div className="stat" key={Math.random()}>
                 <div className="stat-title">{key}</div>
-                <div className="stat-value">{value as string | number}</div>
+                <div className="stat-value">
+                  {value.count}
+                  {value.wireless_count !== undefined && ` / ${value.wireless_count}`}
+                </div>
               </div>
-            ))} */}
+            ))}
         </div>
       </div>
       <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
         <div className="card-title mb-4 text-center">Networks</div>
         <div className="stats">
-          {/* {Object.entries(stats)
-            .splice(4, 2)
-            .map(([key, value]) => (
+          {(Object.entries(stats) as [string, StatValue][])
+            .splice(6, 2)
+            .map(([key, value]: [string, StatValue]) => (
               <div className="stat" key={Math.random()}>
                 <div className="stat-title">{key}</div>
-                <div className="stat-value">{value as string | number}</div>
+                <div className="stat-value">
+                  {value.count}
+                  {value.wireless_count !== undefined && ` / ${value.wireless_count}`}
+                </div>
               </div>
-            ))} */}
+            ))}
         </div>
       </div>
       <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
         <div className="card-title mb-4 text-center">DNS Records</div>
         <div className="stats">
-          {/* {Object.entries(stats)
-            .splice(6, 3)
-            .map(([key, value]) => (
+          {(Object.entries(stats) as [string, StatValue][])
+            .splice(8, 3)
+            .map(([key, value]: [string, StatValue]) => (
               <div className="stat" key={Math.random()}>
                 <div className="stat-title">{key}</div>
-                <div className="stat-value">{value as string | number}</div>
+                <div className="stat-value">
+                  {value.count}
+                  {value.wireless_count !== undefined && ` / ${value.wireless_count}`}
+                </div>
               </div>
-            ))} */}
+            ))}
         </div>
       </div>
       <div className="card card-bordered p-4 flex flex-col flex-wrap justify-center">
         <div className="card-title mb-4 text-center">Users</div>
         <div className="stats">
-          {/* {Object.entries(stats)
-            .splice(9)
-            .map(([key, value]) => (
+          {(Object.entries(stats) as [string, StatValue][])
+            .splice(11)
+            .map(([key, value]: [string, StatValue]) => (
               <div className="stat" key={Math.random()}>
                 <div className="stat-title">{key}</div>
-                <div className="stat-value">{value as string | number}</div>
+                <div className="stat-value">
+                  {value.count}
+                  {value.wireless_count !== undefined && ` / ${value.wireless_count}`}
+                </div>
               </div>
-            ))} */}
+            ))}
         </div>
       </div>
     </div>

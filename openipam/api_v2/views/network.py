@@ -11,17 +11,23 @@ from ..permissions import ReadRestrictObjectPermissions
 
 from ..serializers.network import (
     DhcpGroupSerializer,
+    DhcpOptionSerializer,
+    DhcpOptionToDhcpGroupSerializer,
+    DhcpOptionToDhcpGroupDeleteSerializer,
     NetworkSerializer,
     SharedNetworkSerializer,
     AddressSerializer,
     PoolSerializer,
     AddressTypeSerializer,
+    BuildingSerializer,
 )
 from ..filters.network import NetworkFilter, AddressFilterSet
 from .base import APIPagination
 from openipam.network.models import (
     Address,
     DhcpGroup,
+    DhcpOption,
+    DhcpOptionToDhcpGroup,
     Network,
     NetworkRange,
     Pool,
@@ -29,6 +35,7 @@ from openipam.network.models import (
     Lease,
     DefaultPool,
     SharedNetwork,
+    Building,
 )
 from netfields import NetManager  # noqa
 from ipaddress import ip_address
@@ -285,16 +292,53 @@ class AddressPoolViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = APIPagination
 
 
-class DhcpGroupViewSet(viewsets.ReadOnlyModelViewSet):
+class DhcpGroupViewSet(viewsets.ModelViewSet):
     """API endpoint that allows DHCP groups to be viewed"""
 
     queryset = DhcpGroup.objects.all()
     serializer_class = DhcpGroupSerializer
-    # Only admins should have access to network data
     permission_classes = [base_permissions.IsAdminUser]
     filter_backends = [OrderingFilter]
     ordering_fields = ["name", "changed"]
     pagination_class = APIPagination
+
+    def perform_create(self, serializer):
+        serializer.save(changed_by=self.request.user)
+
+
+class DhcpOptionViewSet(viewsets.ModelViewSet):
+    """API endpoint that allows DHCP options to be viewed"""
+
+    queryset = DhcpOption.objects.all()
+    serializer_class = DhcpOptionSerializer
+    filter_fields = ("option",)
+    lookup_field = "id"
+    permission_classes = [base_permissions.IsAuthenticated]
+    filter_backends = [OrderingFilter]
+    pagination_class = APIPagination
+
+
+class DhcpOptionToGroupViewSet(viewsets.ModelViewSet):
+    """API endpoint that allows DHCP options to be viewed"""
+
+    queryset = DhcpOptionToDhcpGroup.objects.all()
+    filter_fields = ("group__name", "option__name")
+    permission_classes = [base_permissions.IsAuthenticated]
+    pagination_class = APIPagination
+    filter_backends = [OrderingFilter]
+
+    def get_serializer_class(self):
+        if self.action == "destroy":
+            return DhcpOptionToDhcpGroupDeleteSerializer
+        return DhcpOptionToDhcpGroupSerializer
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs["partial"] = True
+        return super().update(request, *args, **kwargs)
+
+    def get_serializer(self, *args, **kwargs):
+        kwargs["context"] = self.get_serializer_context()
+        return super().get_serializer(*args, **kwargs)
 
 
 class AddressTypeViewSet(viewsets.ReadOnlyModelViewSet):
@@ -342,3 +386,14 @@ class AddressTypeViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
         return self.queryset.filter(query).distinct()
+
+
+class BuildingViewSet(viewsets.ReadOnlyModelViewSet):
+    """API endpoint that allows buildings to be viewed"""
+
+    queryset = Building.objects.all()
+    serializer_class = BuildingSerializer
+    permission_classes = [base_permissions.IsAuthenticated]
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["name", "abbreviation", "number", "city"]
+    pagination_class = APIPagination

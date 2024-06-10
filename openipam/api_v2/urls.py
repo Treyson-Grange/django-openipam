@@ -14,10 +14,13 @@ router.register(r"attributes", misc.AttributeViewSet)
 router.register(r"networks", views.network.NetworkViewSet)
 router.register(r"pools", views.network.AddressPoolViewSet)
 router.register(r"dhcp-groups", views.network.DhcpGroupViewSet)
+router.register(r"dhcp-option", views.network.DhcpOptionViewSet)
+router.register(r"dhcp-option-to-groups", views.network.DhcpOptionToGroupViewSet)
 router.register(r"users", views.users.UserViewSet)
 router.register(r"addresses", views.network.AddressViewSet)
 router.register(r"address-types", views.network.AddressTypeViewSet)
 router.register(r"logs", views.logs.LogViewSet)
+router.register(r"building", views.network.BuildingViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
