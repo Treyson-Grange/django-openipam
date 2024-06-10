@@ -21,6 +21,8 @@ from ..serializers.network import (
     AddressTypeSerializer,
     BuildingSerializer,
     NetworkRangeSerializer,
+    NetworkToVlanSerializer,
+    DefaultPoolSerializer,
 )
 from ..filters.network import NetworkFilter, AddressFilterSet
 from .base import APIPagination
@@ -31,6 +33,7 @@ from openipam.network.models import (
     DhcpOptionToDhcpGroup,
     Network,
     NetworkRange,
+    NetworkToVlan,
     Pool,
     AddressType,
     Lease,
@@ -281,6 +284,20 @@ class NetworkRangeViewSet(viewsets.ModelViewSet):
         serializer.save(changed_by=self.request.user)
 
 
+class NetworkToVlanViewSet(viewsets.ModelViewSet):
+    """API endpoint that allows networks to be viewed"""
+
+    queryset = NetworkToVlan.objects.all()
+    serializer_class = NetworkToVlanSerializer
+    permission_classes = [base_permissions.IsAdminUser]
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["network", "name", "changed"]
+    pagination_class = APIPagination
+
+    def perform_create(self, serializer):
+        serializer.save(changed_by=self.request.user)
+
+
 class AddressViewSet(viewsets.ReadOnlyModelViewSet):
     """API endpoint that allows any address to be viewed"""
 
@@ -316,6 +333,17 @@ class AddressPoolViewSet(viewsets.ModelViewSet):
     # Only admins should have access to network data
     permission_classes = [base_permissions.IsAdminUser]
     # No need for filters, there are only a few pools
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["name", "changed"]
+    pagination_class = APIPagination
+
+
+class DefaultPoolViewSet(viewsets.ModelViewSet):
+    """API endpoint that allows default pools to be viewed"""
+
+    queryset = DefaultPool.objects.all()
+    serializer_class = DefaultPoolSerializer
+    permission_classes = [base_permissions.IsAdminUser]
     filter_backends = [OrderingFilter]
     ordering_fields = ["name", "changed"]
     pagination_class = APIPagination

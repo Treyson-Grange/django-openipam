@@ -12,9 +12,11 @@ from openipam.network.models import (
     Vlan,
     Network,
     Pool,
+    DefaultPool,
     AddressType,
     SharedNetwork,
     NetworkRange,
+    NetworkToVlan,
 )
 from rest_framework import serializers as base_serializers
 from rest_framework.serializers import (
@@ -69,6 +71,21 @@ class NetworkRangeSerializer(ModelSerializer):
         range = validated_data.pop("range")
         network_range = NetworkRange.objects.create(range=range)
         return network_range
+
+
+class NetworkToVlanSerializer(ModelSerializer):
+    """Serializer for network to vlan objects."""
+
+    network = SerializerMethodField()
+
+    def get_network(self, obj):
+        return str(obj.network)
+
+    class Meta:
+        """Meta class for network"""
+
+        model = NetworkToVlan
+        fields = "__all__"
 
 
 class NetworkSerializer(ModelSerializer):
@@ -255,6 +272,20 @@ class PoolSerializer(ModelSerializer):
         """Meta class for pool serializer."""
 
         model = Pool
+        fields = "__all__"
+
+
+class DefaultPoolSerializer(ModelSerializer):
+    """Default pool serializer."""
+
+    pool_name = base_serializers.CharField(
+        source="pool.name", read_only=True, default=""
+    )
+
+    class Meta:
+        """Meta class for default"""
+
+        model = DefaultPool
         fields = "__all__"
 
 
