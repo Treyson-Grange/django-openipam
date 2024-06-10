@@ -20,6 +20,7 @@ from ..serializers.network import (
     PoolSerializer,
     AddressTypeSerializer,
     BuildingSerializer,
+    NetworkRangeSerializer,
 )
 from ..filters.network import NetworkFilter, AddressFilterSet
 from .base import APIPagination
@@ -250,6 +251,34 @@ class NetworkViewSet(APIModelViewSet):
             return Response(status=200, data={"detail": "Network resized."})
         else:
             return Response(status=400, data={"detail": "Invalid network."})
+
+
+class SharedNetworkViewSet(viewsets.ModelViewSet):
+    """API endpoint that allows shared networks to be viewed"""
+
+    queryset = SharedNetwork.objects.all()
+    serializer_class = SharedNetworkSerializer
+    permission_classes = [base_permissions.IsAdminUser]
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["name", "changed"]
+    pagination_class = APIPagination
+
+    def perform_create(self, serializer):
+        serializer.save(changed_by=self.request.user)
+
+
+class NetworkRangeViewSet(viewsets.ModelViewSet):
+    """API endpoint that allows network ranges to be viewed"""
+
+    queryset = NetworkRange.objects.all()
+    serializer_class = NetworkRangeSerializer
+    permission_classes = [base_permissions.IsAdminUser]
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["range", "changed"]
+    pagination_class = APIPagination
+
+    def perform_create(self, serializer):
+        serializer.save(changed_by=self.request.user)
 
 
 class AddressViewSet(viewsets.ReadOnlyModelViewSet):

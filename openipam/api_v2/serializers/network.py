@@ -14,6 +14,7 @@ from openipam.network.models import (
     Pool,
     AddressType,
     SharedNetwork,
+    NetworkRange,
 )
 from rest_framework import serializers as base_serializers
 from rest_framework.serializers import (
@@ -39,11 +40,35 @@ class VlanSerializer(ModelSerializer):
 class SharedNetworkSerializer(ModelSerializer):
     """Serializer for shared network objects."""
 
+    changed_by = SerializerMethodField()
+
+    def get_changed_by(self, obj):
+        return obj.changed_by.username if obj.changed_by else None
+
+    def perform_create(self, serializer):
+        serializer.save(changed_by=self.context["request"].user)
+
     class Meta:
         """Meta class for shared network serializer."""
 
         model = SharedNetwork
-        fields = ["id", "name", "description"]
+        fields = ["id", "name", "description", "changed", "changed_by"]
+
+
+class NetworkRangeSerializer(ModelSerializer):
+    """Serializer for network range objects."""
+
+    class Meta:
+        """Meta class for network range serializer."""
+
+        model = NetworkRange
+        fields = "__all__"
+
+    def create(self, validated_data):
+        """Override create method to handle NetworkRange creation."""
+        range = validated_data.pop("range")
+        network_range = NetworkRange.objects.create(range=range)
+        return network_range
 
 
 class NetworkSerializer(ModelSerializer):
@@ -54,8 +79,11 @@ class NetworkSerializer(ModelSerializer):
     shared_network = SerializerMethodField()
     gateway = base_serializers.CharField(source="gateway.ip", read_only=True)
     addresses = SerializerMethodField()
-    changed_by = ChangedBySerializer()
+    changed_by = SerializerMethodField()
     dhcp_group = base_serializers.SlugRelatedField(slug_field="name", read_only=True)
+
+    def get_changed_by(self, obj):
+        return obj.changed_by.username if obj.changed_by else None
 
     def get_addresses(self, obj):
         """Return a link to the address listing"""
@@ -82,6 +110,13 @@ class NetworkSerializer(ModelSerializer):
         return buildings.distinct().values(
             "id", "name", "abbreviation", "number", "city"
         )
+
+    def create(self, validated_data):
+        changed_by_data = validated_data.pop("changed_by", None)
+        if changed_by_data:
+            changed_by_instance = self.context["request"].user
+            validated_data["changed_by"] = changed_by_instance
+        return super().create(validated_data)
 
     class Meta:
         """Meta class for network serializer."""
