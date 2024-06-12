@@ -1,5 +1,4 @@
 import json
-import logging
 
 from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
@@ -43,6 +42,7 @@ def login_request(request):
         return JsonResponse({"detail": "Internal Server Error", "error": e}, status=500)
 
 
+@require_POST
 def logout_request(request):
     if not request.user.is_authenticated:
         return JsonResponse({"detail": "Not logged in"}, status=400)

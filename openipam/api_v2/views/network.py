@@ -20,9 +20,12 @@ from ..serializers.network import (
     PoolSerializer,
     AddressTypeSerializer,
     BuildingSerializer,
+    BuildingToVlanSerializer,
     NetworkRangeSerializer,
     NetworkToVlanSerializer,
+    VlanSerializer,
     DefaultPoolSerializer,
+    LeaseSerializer,
 )
 from ..filters.network import NetworkFilter, AddressFilterSet
 from .base import APIPagination
@@ -34,12 +37,14 @@ from openipam.network.models import (
     Network,
     NetworkRange,
     NetworkToVlan,
+    Vlan,
     Pool,
     AddressType,
     Lease,
     DefaultPool,
     SharedNetwork,
     Building,
+    BuildingToVlan,
 )
 from netfields import NetManager  # noqa
 from ipaddress import ip_address
@@ -110,6 +115,40 @@ class NetworkViewSet(APIModelViewSet):
         """Return all shared networks."""
         shared_networks = self.get_queryset()
         paginated = self.paginate_queryset(shared_networks)
+        serializer = self.get_serializer(paginated, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(
+        detail=False,
+        methods=["get"],
+        queryset=NetworkRange.objects.all(),
+        serializer_class=NetworkRangeSerializer,
+        pagination_class=APIPagination,
+        filter_backends=[],
+        url_path=r"network-ranges",
+        url_name="network-ranges",
+    )
+    def network_ranges(self, request):
+        """Return all network ranges."""
+        ranges = self.get_queryset()
+        paginated = self.paginate_queryset(ranges)
+        serializer = self.get_serializer(paginated, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(
+        detail=False,
+        methods=["get"],
+        queryset=NetworkToVlan.objects.all(),
+        serializer_class=NetworkToVlanSerializer,
+        pagination_class=APIPagination,
+        filter_backends=[],
+        url_path=r"network-to-vlans",
+        url_name="network-to-vlans",
+    )
+    def network_to_vlans(self, request):
+        """Return all network to vlan mappings."""
+        mappings = self.get_queryset()
+        paginated = self.paginate_queryset(mappings)
         serializer = self.get_serializer(paginated, many=True)
         return self.get_paginated_response(serializer.data)
 
@@ -256,28 +295,14 @@ class NetworkViewSet(APIModelViewSet):
             return Response(status=400, data={"detail": "Invalid network."})
 
 
-class SharedNetworkViewSet(viewsets.ModelViewSet):
-    """API endpoint that allows shared networks to be viewed"""
+class VlanViewSet(viewsets.ModelViewSet):
+    """API endpoint that allows vlans to be viewed"""
 
-    queryset = SharedNetwork.objects.all()
-    serializer_class = SharedNetworkSerializer
+    queryset = Vlan.objects.all()
+    serializer_class = VlanSerializer
     permission_classes = [base_permissions.IsAdminUser]
     filter_backends = [OrderingFilter]
-    ordering_fields = ["name", "changed"]
-    pagination_class = APIPagination
-
-    def perform_create(self, serializer):
-        serializer.save(changed_by=self.request.user)
-
-
-class NetworkRangeViewSet(viewsets.ModelViewSet):
-    """API endpoint that allows network ranges to be viewed"""
-
-    queryset = NetworkRange.objects.all()
-    serializer_class = NetworkRangeSerializer
-    permission_classes = [base_permissions.IsAdminUser]
-    filter_backends = [OrderingFilter]
-    ordering_fields = ["range", "changed"]
+    ordering_fields = ["network", "name", "changed"]
     pagination_class = APIPagination
 
     def perform_create(self, serializer):
@@ -445,7 +470,7 @@ class AddressTypeViewSet(viewsets.ReadOnlyModelViewSet):
         return self.queryset.filter(query).distinct()
 
 
-class BuildingViewSet(viewsets.ReadOnlyModelViewSet):
+class BuildingViewSet(viewsets.ModelViewSet):
     """API endpoint that allows buildings to be viewed"""
 
     queryset = Building.objects.all()
@@ -454,3 +479,35 @@ class BuildingViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [OrderingFilter]
     ordering_fields = ["name", "abbreviation", "number", "city"]
     pagination_class = APIPagination
+
+
+class BuildingToVlanViewSet(viewsets.ModelViewSet):
+    """API endpoint that allows buildings to be viewed"""
+
+    queryset = BuildingToVlan.objects.all()
+    serializer_class = BuildingToVlanSerializer
+    permission_classes = [base_permissions.IsAuthenticated]
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["name", "abbreviation", "number", "city"]
+    pagination_class = APIPagination
+
+    def get_queryset(self):
+        """Filter out buildings that the user does not have read access to."""
+        if self.request.user.is_ipamadmin:
+            return self.queryset
+        return get_objects_for_user(
+            self.request.user,
+            ["network.add_records_to_network", "network.is_owner_network"],
+            self.queryset,
+            any_perm=True,
+        )
+
+
+class LeaseViewSet(viewsets.ModelViewSet):
+    """API endpoint that allows leases to be viewed"""
+
+    queryset = Lease.objects.all()
+
+    permission_classes = [base_permissions.IsAuthenticated]
+    pagination_class = APIPagination
+    serializer_class = LeaseSerializer

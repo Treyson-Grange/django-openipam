@@ -243,6 +243,12 @@ class DomainSerializer(serializers.ModelSerializer):
         }
 
 
+class DomainNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Domain
+        fields = ["name"]
+
+
 class DomainCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True, validators=[validate_fqdn])
     master = serializers.CharField(required=False, default=None)

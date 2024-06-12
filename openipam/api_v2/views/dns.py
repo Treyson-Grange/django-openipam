@@ -24,8 +24,7 @@ from ..serializers.dns import (
     DNSCreateSerializer,
     DomainCreateSerializer,
     DHCPDNSCreateSerializer,
-)
-from ..serializers.dns import (
+    DomainNameSerializer,
     DnsTypeSerializer,
     DnsViewSerializer,
     DhcpDnsRecordSerializer,
@@ -402,6 +401,21 @@ class DomainViewSet(APIModelViewSet):
         domain.save()
         serializer = DomainSerializer(domain, context={"request": request})
         return Response(serializer.data.get("group_perms"))
+
+    @action(
+        detail=False,
+        methods=["get"],
+        queryset=Domain.objects.all(),
+        serializer_class=DomainNameSerializer,
+        pagination_class=APIPagination,
+        filter_backends=[],
+    )
+    def names(self, request):
+        """Get a list of domain names."""
+        domains = self.get_queryset()
+        pagination = self.paginate_queryset(domains)
+        serializer = self.get_serializer(pagination, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 class DnsTypeList(generics.ListAPIView):

@@ -2,7 +2,7 @@
 
 from rest_framework import status, viewsets as lib_viewsets
 from rest_framework.views import APIView
-from ..serializers.misc import AttributeSerializer
+from ..serializers.misc import AttributeSerializer, StructuredAttributeValueSerializer
 from openipam.hosts.models import Attribute, StructuredAttributeValue
 from django.db.models import Prefetch
 from openipam.network.models import Network, Lease, Address
@@ -16,6 +16,9 @@ from django.db.models import Q
 from rest_framework.response import Response
 from collections import OrderedDict
 from django.contrib.auth import get_user_model
+from rest_framework.decorators import action
+from .base import APIPagination
+
 
 User = get_user_model()
 
@@ -34,6 +37,14 @@ class AttributeViewSet(lib_viewsets.ReadOnlyModelViewSet):
         .all()
     )
     serializer_class = AttributeSerializer
+
+    @action(detail=False, url_path="structured-values")
+    def structured_values(self, request, *args, **kwargs):
+        queryset = StructuredAttributeValue.objects.select_related(
+            "attribute", "changed_by"
+        ).all()
+        serializer = StructuredAttributeValueSerializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class DashboardAPIView(APIView):

@@ -6,6 +6,7 @@ from openipam.user.models import User
 from openipam.network.models import (
     Address,
     Building,
+    BuildingToVlan,
     DhcpGroup,
     DhcpOption,
     DhcpOptionToDhcpGroup,
@@ -17,13 +18,13 @@ from openipam.network.models import (
     SharedNetwork,
     NetworkRange,
     NetworkToVlan,
+    Lease,
 )
 from rest_framework import serializers as base_serializers
 from rest_framework.serializers import (
     ModelSerializer,
     Field,
     SerializerMethodField,
-    PrimaryKeyRelatedField,
 )
 from django.shortcuts import get_object_or_404
 import ipaddress, base64
@@ -371,7 +372,7 @@ class LeaseSerializer(ModelSerializer):
     class Meta:
         """Meta class for lease serializer."""
 
-        model = Address
+        model = Lease
         fields = (
             "address",
             "abandoned",
@@ -392,8 +393,30 @@ class LeaseSerializer(ModelSerializer):
 class BuildingSerializer(ModelSerializer):
     """Serializer for building objects."""
 
+    def create(self, validated_data):
+        changed_by_data = validated_data.pop("changed_by", None)
+        if changed_by_data:
+            changed_by_instance = self.context["request"].user
+            validated_data["changed_by"] = changed_by_instance
+        return super().create(validated_data)
+
     class Meta:
         """Meta class for building serializer."""
 
         model = Building
+        fields = "__all__"
+
+
+class BuildingToVlanSerializer(ModelSerializer):
+    """Serializer for building to vlan objects."""
+
+    building_name = SerializerMethodField()
+
+    def get_building_name(self, obj):
+        return obj.building.name
+
+    class Meta:
+        """Meta class for building to vlan serializer."""
+
+        model = BuildingToVlan
         fields = "__all__"
