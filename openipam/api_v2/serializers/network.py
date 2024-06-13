@@ -367,7 +367,11 @@ class AddressTypeSerializer(ModelSerializer):
 class LeaseSerializer(ModelSerializer):
     """Serializer for lease objects."""
 
-    address = AddressSerializer()
+    address = SerializerMethodField()
+    host = base_serializers.CharField(read_only=False)
+
+    def get_address(self, obj):
+        return str(obj.address)
 
     class Meta:
         """Meta class for lease serializer."""
@@ -379,6 +383,7 @@ class LeaseSerializer(ModelSerializer):
             "server",
             "starts",
             "ends",
+            "host",
         )
 
         read_only_fields = (
@@ -387,11 +392,40 @@ class LeaseSerializer(ModelSerializer):
             "server",
             "starts",
             "ends",
+            "host",
         )
+
+
+class CreateLeaseSerializer(ModelSerializer):
+    """Serializer for lease objects."""
+
+    address = AddressCidrField()
+    host = base_serializers.CharField(read_only=False)
+
+    class Meta:
+        """Meta class for lease serializer."""
+
+        model = Lease
+        fields = (
+            "address",
+            "abandoned",
+            "server",
+            "starts",
+            "ends",
+            "host",
+        )
+
+
+class BuildingVlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vlan
+        fields = ["id", "vlan_id", "name", "description"]
 
 
 class BuildingSerializer(ModelSerializer):
     """Serializer for building objects."""
+
+    building_vlans = BuildingVlanSerializer(many=True, read_only=True)
 
     def create(self, validated_data):
         changed_by_data = validated_data.pop("changed_by", None)
@@ -405,6 +439,7 @@ class BuildingSerializer(ModelSerializer):
 
         model = Building
         fields = "__all__"
+        read_only_fields = ("building_vlans",)
 
 
 class BuildingToVlanSerializer(ModelSerializer):

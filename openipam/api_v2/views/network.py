@@ -26,6 +26,7 @@ from ..serializers.network import (
     VlanSerializer,
     DefaultPoolSerializer,
     LeaseSerializer,
+    CreateLeaseSerializer,
 )
 from ..filters.network import NetworkFilter, AddressFilterSet
 from .base import APIPagination
@@ -511,3 +512,8 @@ class LeaseViewSet(viewsets.ModelViewSet):
     permission_classes = [base_permissions.IsAuthenticated]
     pagination_class = APIPagination
     serializer_class = LeaseSerializer
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return CreateLeaseSerializer
+        return LeaseSerializer
