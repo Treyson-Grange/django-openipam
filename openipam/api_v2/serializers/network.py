@@ -25,19 +25,36 @@ from rest_framework.serializers import (
     ModelSerializer,
     Field,
     SerializerMethodField,
+    CharField,
 )
+from netfields.rest_framework import CidrAddressField
 from django.shortcuts import get_object_or_404
 import ipaddress, base64
+
+
+class VlanBuildingSerializer(ModelSerializer):
+    class Meta:
+        model = Building
+        fields = ["id", "number", "abbreviation", "name"]
+
+
+class VlanNetworkSerializer(ModelSerializer):
+    class Meta:
+        model = Network
+        fields = ["network", "name", "gateway", "dhcp_group", "shared_network"]
 
 
 class VlanSerializer(ModelSerializer):
     """Serializer for vlan objects."""
 
+    buildings = VlanBuildingSerializer(many=True, read_only=True)
+    vlan_networks = VlanNetworkSerializer(many=True, read_only=True)
+
     class Meta:
         """Meta class for vlan serializer."""
 
         model = Vlan
-        fields = ["id", "vlan_id", "name", "description"]
+        fields = "__all__"
 
 
 class SharedNetworkSerializer(ModelSerializer):
@@ -74,17 +91,18 @@ class NetworkRangeSerializer(ModelSerializer):
         return network_range
 
 
-class NetworkToVlanSerializer(ModelSerializer):
-    """Serializer for network to vlan objects."""
+class NetworkToVlanSerializer(ChangedBySerializer):
+    network = CidrAddressField()
 
-    network = SerializerMethodField()
-
-    def get_network(self, obj):
-        return str(obj.network)
+    def validate_network(self, value):
+        if value:
+            network_exists = Network.objects.filter(network=value).first()
+            if not network_exists:
+                raise serializers.ValidationError("The network entered does not exist.")
+            return network_exists
+        return None
 
     class Meta:
-        """Meta class for network"""
-
         model = NetworkToVlan
         fields = "__all__"
 
@@ -199,9 +217,6 @@ class DhcpOptionSerializer(serializers.ModelSerializer):
         model = DhcpOption
         fields = "__all__"
 
-    def create(self, validated_data):
-        return super().create(validated_data)
-
 
 class BinaryDataField(serializers.Field):
     def to_representation(self, obj):
@@ -222,6 +237,9 @@ class DhcpOptionToDhcpGroupSerializer(serializers.ModelSerializer):
         slug_field="name", queryset=DhcpGroup.objects.all()
     )
     value = BinaryDataField()
+    readable_value = serializers.CharField(
+        source="get_readable_value", read_only=True, label="value"
+    )
 
     def create(self, validated_data):
         changed_by = self.context["request"].user
@@ -237,6 +255,7 @@ class DhcpOptionToDhcpGroupSerializer(serializers.ModelSerializer):
             "value",
             "changed_by",
             "changed",
+            "readable_value",
         )
 
 
@@ -367,53 +386,30 @@ class AddressTypeSerializer(ModelSerializer):
 class LeaseSerializer(ModelSerializer):
     """Serializer for lease objects."""
 
-    address = SerializerMethodField()
-    host = base_serializers.CharField(read_only=False)
+    address = CharField(read_only=False)
+    host = serializers.CharField(allow_null=True)
 
-    def get_address(self, obj):
-        return str(obj.address)
+    starts = base_serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
+    ends = base_serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
 
-    class Meta:
-        """Meta class for lease serializer."""
+    def update(self, instance, validated_data):
+        address_data = validated_data.pop("address", None)
+        if address_data:
+            try:
+                address_instance = Address.objects.get(address=address_data)
+                validated_data["address"] = address_instance
+            except Address.DoesNotExist:
+                raise serializers.ValidationError(
+                    f"Address {address_data} does not exist"
+                )
 
-        model = Lease
-        fields = (
-            "address",
-            "abandoned",
-            "server",
-            "starts",
-            "ends",
-            "host",
-        )
-
-        read_only_fields = (
-            "address",
-            "abandoned",
-            "server",
-            "starts",
-            "ends",
-            "host",
-        )
-
-
-class CreateLeaseSerializer(ModelSerializer):
-    """Serializer for lease objects."""
-
-    address = AddressCidrField()
-    host = base_serializers.CharField(read_only=False)
+        return super().update(instance, validated_data)
 
     class Meta:
         """Meta class for lease serializer."""
 
         model = Lease
-        fields = (
-            "address",
-            "abandoned",
-            "server",
-            "starts",
-            "ends",
-            "host",
-        )
+        fields = "__all__"
 
 
 class BuildingVlanSerializer(serializers.ModelSerializer):

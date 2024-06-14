@@ -26,7 +26,6 @@ from ..serializers.network import (
     VlanSerializer,
     DefaultPoolSerializer,
     LeaseSerializer,
-    CreateLeaseSerializer,
 )
 from ..filters.network import NetworkFilter, AddressFilterSet
 from .base import APIPagination
@@ -47,6 +46,7 @@ from openipam.network.models import (
     Building,
     BuildingToVlan,
 )
+from rest_framework import viewsets, status
 from netfields import NetManager  # noqa
 from ipaddress import ip_address
 from guardian.shortcuts import get_objects_for_user
@@ -133,23 +133,6 @@ class NetworkViewSet(APIModelViewSet):
         """Return all network ranges."""
         ranges = self.get_queryset()
         paginated = self.paginate_queryset(ranges)
-        serializer = self.get_serializer(paginated, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(
-        detail=False,
-        methods=["get"],
-        queryset=NetworkToVlan.objects.all(),
-        serializer_class=NetworkToVlanSerializer,
-        pagination_class=APIPagination,
-        filter_backends=[],
-        url_path=r"network-to-vlans",
-        url_name="network-to-vlans",
-    )
-    def network_to_vlans(self, request):
-        """Return all network to vlan mappings."""
-        mappings = self.get_queryset()
-        paginated = self.paginate_queryset(mappings)
         serializer = self.get_serializer(paginated, many=True)
         return self.get_paginated_response(serializer.data)
 
@@ -296,6 +279,20 @@ class NetworkViewSet(APIModelViewSet):
             return Response(status=400, data={"detail": "Invalid network."})
 
 
+class NetworkRangeViewSet(viewsets.ModelViewSet):
+    """API endpoint that allows network ranges to be viewed"""
+
+    queryset = NetworkRange.objects.all()
+    serializer_class = NetworkRangeSerializer
+    permission_classes = [base_permissions.IsAdminUser]
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["range", "changed"]
+    pagination_class = APIPagination
+
+    def perform_create(self, serializer):
+        serializer.save(changed_by=self.request.user)
+
+
 class VlanViewSet(viewsets.ModelViewSet):
     """API endpoint that allows vlans to be viewed"""
 
@@ -311,17 +308,17 @@ class VlanViewSet(viewsets.ModelViewSet):
 
 
 class NetworkToVlanViewSet(viewsets.ModelViewSet):
-    """API endpoint that allows networks to be viewed"""
+    """API endpoint that allows network to vlan mappings to be viewed"""
 
-    queryset = NetworkToVlan.objects.all()
+    queryset = NetworkToVlan.objects.select_related(
+        "network", "vlan", "changed_by"
+    ).all()
+    lookup_field = "network"
+    lookup_value_regex = r"([0-9a-fA-F]{1,4}[\.\:]?){3,4}(\:?\/[0-9]+)?"
+    permission_classes = (base_permissions.IsAuthenticated,)
     serializer_class = NetworkToVlanSerializer
-    permission_classes = [base_permissions.IsAdminUser]
     filter_backends = [OrderingFilter]
-    ordering_fields = ["network", "name", "changed"]
     pagination_class = APIPagination
-
-    def perform_create(self, serializer):
-        serializer.save(changed_by=self.request.user)
 
 
 class AddressViewSet(viewsets.ReadOnlyModelViewSet):
@@ -508,12 +505,9 @@ class LeaseViewSet(viewsets.ModelViewSet):
     """API endpoint that allows leases to be viewed"""
 
     queryset = Lease.objects.all()
-
+    lookup_field = "address"
+    lookup_value_regex = r"\b(?:\d{1,3}\.){3}\d{1,3}\b"
     permission_classes = [base_permissions.IsAuthenticated]
-    pagination_class = APIPagination
     serializer_class = LeaseSerializer
-
-    def get_serializer_class(self):
-        if self.action == "create":
-            return CreateLeaseSerializer
-        return LeaseSerializer
+    filter_backends = [OrderingFilter]
+    pagination_class = APIPagination

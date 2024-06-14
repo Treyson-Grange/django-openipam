@@ -546,9 +546,10 @@ class PoolViewSet(viewsets.ModelViewSet):
 
 class LeaseViewSet(ListDestroyViewSet):
     queryset = Lease.objects.all()
-    filter_class = LeaseFilter
     permission_classes = (IsAuthenticated, IPAMAPIPermission)
     pagination_class = APIPagination
+    lookup_field = "address"
+    lookup_value_regex = r"\b(?:\d{1,3}\.){3}\d{1,3}\b"
 
     def get_serializer_class(self):
         if self.action == "destroy":
