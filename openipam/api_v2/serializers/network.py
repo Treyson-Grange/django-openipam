@@ -1,8 +1,6 @@
 """Serializers for network objects."""
 
 from openipam.api_v2.serializers.base import ChangedBySerializer
-from django.db import models
-from openipam.user.models import User
 from openipam.network.models import (
     Address,
     Building,
@@ -29,7 +27,7 @@ from rest_framework.serializers import (
 )
 from netfields.rest_framework import CidrAddressField
 from django.shortcuts import get_object_or_404
-import ipaddress, base64
+import ipaddress
 
 
 class VlanBuildingSerializer(ModelSerializer):

@@ -28,6 +28,9 @@ router.register(r"leases", views.network.LeaseViewSet)
 router.register(r"buildings", views.network.BuildingViewSet)
 router.register(r"building-to-vlans", views.network.BuildingToVlanViewSet)
 router.register(r"report/exposed-server-hosts", views.report.ExposedHostViewSet)
+router.register(r"report/disabled-hosts", views.report.DisabledHostsViewSet)
+router.register(r"report/host-dns", views.report.HostDNSViewSet)
+router.register(r"report/ptrdns", views.report.PTRDNSViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

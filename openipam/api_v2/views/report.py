@@ -1,21 +1,31 @@
 from rest_framework.response import Response
 from rest_framework import status
 from ..permissions import APIAdminPermission
-from .base import APIModelViewSet, APIPagination
+from .base import APIPagination
+from rest_framework.viewsets import ReadOnlyModelViewSet
 from ..serializers.hosts import HostSerializer
+from ..serializers.dns import DNSSerializer
 from rest_framework.renderers import (
     JSONRenderer,
     BrowsableAPIRenderer,
 )
+from rest_framework import permissions as base_permissions
 
 from rest_framework_csv.renderers import CSVRenderer
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import F
 
-from openipam.hosts.models import Host
+from openipam.hosts.models import Host, GulRecentArpBymac
+from openipam.dns.models import DnsRecord
+
 from openipam.conf.ipam_settings import CONFIG_DEFAULTS
 
 from guardian.models import UserObjectPermission, GroupObjectPermission
+from rest_framework.permissions import IsAuthenticated
+from django.utils import timezone
+from datetime import timedelta
+
+from ..serializers.report import GulRecentArpBymacSerializer, DNSReportSerializer
 
 
 class ExposedHostCSVRenderer(CSVRenderer):
@@ -29,7 +39,7 @@ class ExposedHostCSVRenderer(CSVRenderer):
     ]
 
 
-class ExposedHostViewSet(APIModelViewSet):
+class ExposedHostViewSet(ReadOnlyModelViewSet):
     permission_classes = [APIAdminPermission]
     renderer_classes = (BrowsableAPIRenderer, JSONRenderer, ExposedHostCSVRenderer)
     queryset = Host.objects.all()
@@ -93,3 +103,66 @@ class ExposedHostViewSet(APIModelViewSet):
             return Response({"data": data}, status=status.HTTP_200_OK)
         else:
             return Response(data, status=status.HTTP_200_OK)
+
+
+class DisabledHostsViewSet(ReadOnlyModelViewSet):
+    queryset = GulRecentArpBymac.objects.none()
+    serializer_class = GulRecentArpBymacSerializer
+    permission_classes = [IsAuthenticated, base_permissions.IsAdminUser]
+    pagination_class = APIPagination
+
+    def get_queryset(self):
+        return (
+            GulRecentArpBymac.objects.select_related("host")
+            .filter(stopstamp__gt=timezone.now() - timedelta(minutes=10))
+            .exclude(host__leases__ends__lt=timezone.now())
+            .extra(
+                where=[
+                    "gul_recent_arp_bymac.mac IN (SELECT mac from disabled)",
+                ]
+            )
+        )
+
+
+class HostDNSViewSet(ReadOnlyModelViewSet):
+    queryset = Host.objects.none()
+    serializer_class = HostSerializer
+    permission_classes = [IsAuthenticated, base_permissions.IsAdminUser]
+    pagination_class = APIPagination
+
+    def get_queryset(self):
+        return Host.objects.filter(
+            dns_records__isnull=True,
+            addresses__isnull=False,
+            expires__gte=timezone.now(),
+        )
+
+
+class PTRDNSViewSet(ReadOnlyModelViewSet):
+    queryset = DnsRecord.objects.none()
+    serializer_class = DNSReportSerializer
+    permission_classes = [IsAuthenticated, base_permissions.IsAdminUser]
+    pagination_class = APIPagination
+
+    def get_queryset(self):
+        return DnsRecord.objects.raw(
+            r"""
+            SELECT d.*, a.address as address, d3.name as arecord, a.mac as arecord_host
+            FROM dns_records AS d
+                LEFT JOIN addresses AS a ON (
+                    regexp_replace(d.name, '([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)..*', E'\\4.\\3.\\2.\\1')::inet = a.address
+                )
+                LEFT JOIN dns_records AS d2 ON (
+                    d2.name = d.text_content AND d2.ip_content IS NOT NULL
+                )
+                LEFT JOIN dns_records AS d3 ON (
+                    a.address = d3.ip_content
+                )
+            WHERE d.tid = '12'
+                AND d.name LIKE '%%.in-addr.arpa'
+                AND d2.ip_content IS NULL
+
+            ORDER BY d.changed DESC
+                --AND d.text_content != d2.name
+        """
+        )

@@ -46,7 +46,7 @@ class RestrictedUserSerializer(serializers.ModelSerializer):
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ("id", "name")
+        fields = ("id", "name", "permissions")
         read_only_fields = (
             "id",
             "name",
