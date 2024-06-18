@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from openipam.hosts.models import GulRecentArpBymac
+from openipam.hosts.models import Host
 from openipam.dns.models import DnsRecord
 
 
@@ -18,3 +19,19 @@ class DNSReportSerializer(serializers.Serializer):
     address = serializers.CharField()
     arecord = serializers.CharField()
     arecord_host = serializers.CharField()
+
+
+class HostReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Host
+        fields = ["hostname", "mac", "expires"]
+
+
+class DnsRecordSerializer(serializers.ModelSerializer):
+    ip_content = serializers.CharField()
+    domain = serializers.CharField()
+    changed_by = serializers.CharField()
+
+    class Meta:
+        model = DnsRecord
+        fields = ["domain", "ip_content", "changed", "changed_by"]

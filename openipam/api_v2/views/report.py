@@ -25,7 +25,12 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from datetime import timedelta
 
-from ..serializers.report import GulRecentArpBymacSerializer, DNSReportSerializer
+from ..serializers.report import (
+    GulRecentArpBymacSerializer,
+    DNSReportSerializer,
+    HostReportSerializer,
+    DnsRecordSerializer,
+)
 
 
 class ExposedHostCSVRenderer(CSVRenderer):
@@ -166,3 +171,44 @@ class PTRDNSViewSet(ReadOnlyModelViewSet):
                 --AND d.text_content != d2.name
         """
         )
+
+
+class ExpiredHostsViewSet(ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated, base_permissions.IsAdminUser]
+    serializer_class = HostReportSerializer
+    pagination_class = APIPagination
+    queryset = Host.objects.none()
+
+    def get_queryset(self):
+        return (
+            Host.objects.select_related("mac_history")
+            .filter(
+                pools__isnull=False,
+                expires__lte=timezone.now()
+                - timedelta(
+                    weeks=CONFIG_DEFAULTS["STATIC_HOST_EXPIRY_THRESHOLD_WEEKS"]
+                ),
+                mac_history__host__isnull=True,
+            )
+            .order_by("-expires")
+        )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = self.serializer_class(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
+
+
+class OrphanedDNSViewSet(ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated, base_permissions.IsAdminUser]
+    serializer_class = DnsRecordSerializer
+    pagination_class = APIPagination
+    queryset = DnsRecord.objects.select_related(
+        "dns_type", "ip_content", "changed_by"
+    ).filter(host__isnull=True, dns_type__name="A")
