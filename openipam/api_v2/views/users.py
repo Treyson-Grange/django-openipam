@@ -181,6 +181,7 @@ class UserViewSet(viewsets.ModelViewSet):
         users = self.request.data.get("users", [])
         object = self.request.data.get("object", None)
         permission = self.request.data.get("permission", [])
+        print(users, object, permission)
         if not users:
             return Response(status=400, data={"detail": "Users are required."})
         if not object:
@@ -192,21 +193,21 @@ class UserViewSet(viewsets.ModelViewSet):
             try:
                 user = User.objects.get(username=user)
                 if "domain" in permission:
-                    object = Domain.objects.get(name=object)
+                    obj_instance = Domain.objects.get(name=object)
                 elif "dnstype" in permission:
-                    object = DnsType.objects.get(name=object)
+                    obj_instance = DnsType.objects.get(name=object)
                 elif "host" in permission:
-                    object = Host.objects.get(name=object)
+                    obj_instance = Host.objects.get(name=object)
                 elif "network" in permission:
-                    object = Network.objects.get(name=object)
+                    obj_instance = Network.objects.get(name=object)
                 elif "pool" in permission:
-                    object = Pool.objects.get(name=object)
-                assign_perm(permission, user, object)
+                    obj_instance = Pool.objects.get(name=object)
+                assign_perm(permission, user, obj_instance)
             except User.DoesNotExist:
                 return Response(status=404, data={"detail": f"User {user} not found."})
             except Exception as e:
                 return Response(status=500, data={"detail": f"Error: {e}"})
-        return Response(status=201)
+        return Response(status=201, data={"detail": "Permissions assigned."})
 
     @assign_object_permissions.mapping.delete
     def delete_object_permissions(self, request):
@@ -225,21 +226,21 @@ class UserViewSet(viewsets.ModelViewSet):
             try:
                 user = User.objects.get(username=user)
                 if "domain" in permission:
-                    object = Domain.objects.get(name=object)
+                    obj_instance = Domain.objects.get(name=object)
                 elif "dnstype" in permission:
-                    object = DnsType.objects.get(name=object)
+                    obj_instance = DnsType.objects.get(name=object)
                 elif "host" in permission:
-                    object = Host.objects.get(name=object)
+                    obj_instance = Host.objects.get(name=object)
                 elif "network" in permission:
-                    object = Network.objects.get(name=object)
+                    obj_instance = Network.objects.get(name=object)
                 elif "pool" in permission:
-                    object = Pool.objects.get(name=object)
-                remove_perm(permission, user, object)
+                    obj_instance = Pool.objects.get(name=object)
+                remove_perm(permission, user, obj_instance)
             except User.DoesNotExist:
                 return Response(status=404, data={"detail": f"User {user} not found."})
             except Exception as e:
                 return Response(status=500, data={"detail": f"Error: {e}"})
-        return Response(status=201)
+        return Response(status=201, data={"detail": "Permissions removed."})
 
     @action(
         detail=False,
