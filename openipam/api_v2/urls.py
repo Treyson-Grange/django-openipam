@@ -39,6 +39,7 @@ urlpatterns = [
     path("admin/stats/", misc.DashboardAPIView.as_view()),
     path("groups/", views.users.GroupView.as_view()),
     path("login/", views.auth.login_request, name="login"),
+    path("get_csrf/", views.auth.get_csrf_token, name="get_csrf"),
     path("logout/", views.auth.logout_request, name="logout"),
     path("whoami/", views.auth.whoami, name="whoami"),
 ]

@@ -109,7 +109,9 @@ FIXTURE_DIRS = ("%s/fixtures/" % BASE_DIR,)
 SECRET_KEY = locals().pop(
     "LOCAL_SECRET_KEY",
     hashlib.md5(
-        (socket.gethostname() + ")*)&8a36)6f-ne5(-!8a(vvfse4bsI&*#^@$^(eyg&@0=7=y@").encode("ascii")
+        (
+            socket.gethostname() + ")*)&8a36)6f-ne5(-!8a(vvfse4bsI&*#^@$^(eyg&@0=7=y@"
+        ).encode("ascii")
     ).hexdigest(),
 )
 
@@ -145,12 +147,28 @@ TEMPLATES = [
     }
 ]
 
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+CSRF_COOKIE_NAME = "csrftoken"
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_HTTPONLY = False  # Set to True in production
+
+# Ensure cookies are sent cross-origin
+CSRF_COOKIE_SAMESITE = None
+SESSION_COOKIE_SAMESITE = None
+
+
 LOCAL_MIDDLEWARE = locals().pop("LOCAL_MIDDLEWARE", [])
 DEBUG_MIDDLEWARE = locals().pop("DEBUG_MIDDLEWARE", [])
 MIDDLEWARE = (
     DEBUG_MIDDLEWARE
     + [
-        "django.middleware.common.CommonMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.middleware.csrf.CsrfViewMiddleware",
         "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -159,6 +177,8 @@ MIDDLEWARE = (
         "openipam.middleware.DuoAuthRequiredMiddleware",
         "openipam.middleware.MimicUserMiddleware",
         "openipam.middleware.SetRemoteAddrMiddleware",
+        "corsheaders.middleware.CorsMiddleware",
+        "django.middleware.common.CommonMiddleware",
         # Uncomment the next line for simple clickjacking protection:
         # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     ]
@@ -215,6 +235,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.admin",
+    "corsheaders",
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 ] + LOCAL_INSTALLED_APPS
@@ -292,6 +313,4 @@ ADMIN_TOOLS_MENU = "openipam.core.menu.IPAMMenu"
 ADMIN_TOOLS_INDEX_DASHBOARD = "openipam.core.dashboard.IPAMIndexDashboard"
 ADMIN_TOOLS_APP_INDEX_DASHBOARD = "openipam.core.dashboard.IPAMAppIndexDashboard"
 
-HOSTNAME_VALIDATION_REGEX = (
-    r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
-)
+HOSTNAME_VALIDATION_REGEX = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"

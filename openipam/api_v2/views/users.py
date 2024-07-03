@@ -265,16 +265,10 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(status=400, data={"detail": "Username is required."})
         user = self.queryset.get(username=username)
         groups = request.data.get("groups", [])
-        print()
-        print(groups)
         for group in groups:
             try:
                 group = Group.objects.get(name=group)
-                print()
-                print(group)
                 group.user_set.add(user)
-                print()
-                print(group)
 
             except Group.DoesNotExist:
                 return Response(
