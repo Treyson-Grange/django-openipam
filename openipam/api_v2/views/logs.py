@@ -40,8 +40,6 @@ class LogViewSet(APIModelViewSet):
         return self.serializer_class
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [permissions.IsAuthenticated()]
         return [permissions.IsAdminUser()]
 
     @action(
