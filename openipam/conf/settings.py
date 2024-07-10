@@ -152,6 +152,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
+CORS_ORIGIN_WHITELIST = []
 
 CORS_ORIGIN_ALLOW_ALL = True
 
@@ -162,7 +163,7 @@ CSRF_COOKIE_HTTPONLY = False  # Set to True in production
 # Ensure cookies are sent cross-origin
 CSRF_COOKIE_SAMESITE = None
 SESSION_COOKIE_SAMESITE = None
-
+SESSION_COOKIE_SECURE = False
 
 LOCAL_MIDDLEWARE = locals().pop("LOCAL_MIDDLEWARE", [])
 DEBUG_MIDDLEWARE = locals().pop("DEBUG_MIDDLEWARE", [])

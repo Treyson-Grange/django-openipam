@@ -9,6 +9,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from ..serializers.auth import LoginSerializer
+from django.contrib.sessions.middleware import SessionMiddleware
 
 
 @api_view(["POST"])
@@ -74,5 +75,14 @@ def whoami(request):
 
 
 def get_csrf_token(request):
+    session_middleware = SessionMiddleware()
+    session_middleware.process_request(request)
+
     csrf_token = get_token(request)
-    return JsonResponse({"csrfToken": csrf_token})
+
+    if not request.session.session_key:
+        request.session.save()
+
+    return JsonResponse(
+        {"csrfToken": csrf_token, "session_id": request.session.session_key}
+    )
