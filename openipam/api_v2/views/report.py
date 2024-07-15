@@ -15,7 +15,7 @@ from rest_framework_csv.renderers import CSVRenderer
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import F
 
-from openipam.hosts.models import Host, GulRecentArpBymac
+from openipam.hosts.models import Host, GulRecentArpBymac, User
 from openipam.dns.models import DnsRecord
 
 from openipam.conf.ipam_settings import CONFIG_DEFAULTS
@@ -30,7 +30,14 @@ from ..serializers.report import (
     DNSReportSerializer,
     HostReportSerializer,
     DnsRecordSerializer,
+    RecentStatsSerializer,
 )
+from datetime import datetime
+from django.core.cache import cache
+from django.db.models import Count
+from rest_framework import permissions
+from rest_framework.response import Response
+from qsstats import QuerySetStats
 
 
 class ExposedHostCSVRenderer(CSVRenderer):
@@ -212,3 +219,58 @@ class OrphanedDNSViewSet(ReadOnlyModelViewSet):
     queryset = DnsRecord.objects.select_related(
         "dns_type", "ip_content", "changed_by"
     ).filter(host__isnull=True, dns_type__name="A")
+
+
+class RecentStatsViewSet(ReadOnlyModelViewSet):
+    permission_classes = [permissions.IsAdminUser]
+    serializer_class = RecentStatsSerializer
+    queryset = Host.objects.none()
+
+    def list(self, request):
+        hosts = Host.objects.all()
+        hosts_stats = QuerySetStats(
+            hosts, "changed", aggregate=Count("mac"), today=datetime.now()
+        )
+
+        hosts_today = cache.get("hosts_today")
+        hosts_week = cache.get("hosts_week")
+        hosts_month = cache.get("hosts_month")
+
+        if hosts_today is None:
+            hosts_today = hosts_stats.this_day()
+            cache.set("hosts_today", hosts_today)
+        if hosts_week is None:
+            hosts_week = hosts_stats.this_week()
+            cache.set("hosts_week", hosts_week)
+        if hosts_month is None:
+            hosts_month = hosts_stats.this_month()
+            cache.set("hosts_month", hosts_month)
+
+        users = User.objects.all()
+        users_stats = QuerySetStats(users, "date_joined", today=datetime.now())
+
+        users_today = cache.get("users_today")
+        users_week = cache.get("users_week")
+        users_month = cache.get("users_month")
+
+        if users_today is None:
+            users_today = users_stats.this_day()
+            cache.set("users_today", users_today)
+        if users_week is None:
+            users_week = users_stats.this_week()
+            cache.set("users_week", users_week)
+        if users_month is None:
+            users_month = users_stats.this_month()
+            cache.set("users_month", users_month)
+
+        data = {
+            "hosts_today": hosts_today,
+            "hosts_week": hosts_week,
+            "hosts_month": hosts_month,
+            "users_today": users_today,
+            "users_week": users_week,
+            "users_month": users_month,
+        }
+
+        serializer = self.get_serializer(data)
+        return Response(serializer.data)

@@ -35,3 +35,12 @@ class DnsRecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = DnsRecord
         fields = ["domain", "ip_content", "changed", "changed_by"]
+
+
+class RecentStatsSerializer(serializers.Serializer):
+    hosts_today = serializers.IntegerField()
+    hosts_week = serializers.IntegerField()
+    hosts_month = serializers.IntegerField()
+    users_today = serializers.IntegerField()
+    users_week = serializers.IntegerField()
+    users_month = serializers.IntegerField()

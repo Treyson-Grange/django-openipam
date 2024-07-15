@@ -33,6 +33,7 @@ router.register(r"report/host-dns", views.report.HostDNSViewSet)
 router.register(r"report/ptrdns", views.report.PTRDNSViewSet)
 router.register(r"report/expired-hosts", views.report.ExpiredHostsViewSet)
 router.register(r"report/orphaned-dns", views.report.OrphanedDNSViewSet)
+router.register(r"report/recent-stats", views.report.RecentStatsViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
