@@ -40,6 +40,8 @@ class LogViewSet(APIModelViewSet):
         return self.serializer_class
 
     def get_permissions(self):
+        if self.action == "my_logs":
+            return [permissions.IsAuthenticated()]
         return [permissions.IsAdminUser()]
 
     @action(
@@ -122,3 +124,19 @@ class LogViewSet(APIModelViewSet):
         page = pagination.paginate_queryset(queryset, request)
         user_serializer = self.get_serializer(page, many=True)
         return pagination.get_paginated_response(user_serializer.data)
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="my-logs",
+        permission_classes=[permissions.IsAuthenticated],
+        serializer_class=LogEntrySerializer,
+    )
+    def my_logs(self, request: Request):
+        """List all logs for the current user."""
+        queryset = LogEntry.objects.filter(user=request.user).order_by("-action_time")
+        queryset = self.filter_queryset(queryset)
+        pagination = LogsPagination()
+        page = pagination.paginate_queryset(queryset, request)
+        serializer = self.get_serializer(page, many=True)
+        return pagination.get_paginated_response(serializer.data)

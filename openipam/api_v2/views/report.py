@@ -222,7 +222,7 @@ class OrphanedDNSViewSet(ReadOnlyModelViewSet):
 
 
 class RecentStatsViewSet(ReadOnlyModelViewSet):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAuthenticated]
     serializer_class = RecentStatsSerializer
     queryset = Host.objects.none()
 
