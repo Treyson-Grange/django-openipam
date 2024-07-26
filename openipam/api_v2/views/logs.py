@@ -44,6 +44,16 @@ class LogViewSet(APIModelViewSet):
             return [permissions.IsAuthenticated()]
         return [permissions.IsAdminUser()]
 
+    def filter_queryset(self, queryset):
+        order_by = self.request.query_params.get("order_by", None)
+        direction = self.request.query_params.get("direction", None)
+        if order_by:
+            if direction == "desc":
+                queryset = queryset.order_by(f"-{order_by}")
+            else:
+                queryset = queryset.order_by(order_by)
+        return queryset
+
     @action(
         detail=False,
         methods=["get"],

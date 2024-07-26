@@ -44,6 +44,14 @@ class DnsViewSet(APIModelViewSet):
         queryset = super().get_queryset()
         host = self.request.query_params.get("host", None)
         mac = self.request.query_params.get("mac", None)
+        order_by = self.request.query_params.get("order_by", None)
+        direction = self.request.query_params.get("direction", None)
+        if order_by:
+            if direction == "desc":
+                queryset = queryset.order_by(f"-{order_by}")
+            else:
+                queryset = queryset.order_by(order_by)
+
         if host:
             queryset = queryset.filter(host__hostname=host)
         if mac:

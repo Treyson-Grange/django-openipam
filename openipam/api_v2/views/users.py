@@ -61,6 +61,7 @@ class GroupView(generics.ListAPIView):
         name = self.request.query_params.get("name", None)
         order_by = self.request.query_params.get("order_by", None)
         direction = self.request.query_params.get("direction", None)
+
         if name is not None:
             queryset = queryset.filter(name__icontains=name)
 

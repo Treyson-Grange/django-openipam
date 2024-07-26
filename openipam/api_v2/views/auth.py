@@ -48,7 +48,6 @@ def login_request(request):
 
 
 @require_POST
-@ensure_csrf_cookie
 def logout_request(request):
     if not request.user.is_authenticated:
         return JsonResponse({"detail": "Not logged in"}, status=400)
