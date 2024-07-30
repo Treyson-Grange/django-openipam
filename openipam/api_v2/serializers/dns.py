@@ -41,8 +41,9 @@ class DNSSerializer(serializers.ModelSerializer):
         return obj.dns_type.name
 
     def get_host(self, obj):
-        # Host is nullable, so we need to check for that
-        return obj.host.hostname if obj.host else None
+        if obj.host:
+            return str(obj.host.mac)
+        return None
 
     class Meta:
         model = DnsRecord

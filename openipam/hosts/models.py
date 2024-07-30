@@ -383,6 +383,20 @@ class Host(DirtyFieldsMixin, models.Model):
 
         super(Host, self).__init__(*args, **kwargs)
 
+    def to_dict(self):
+        return {
+            "mac": str(self.mac),
+            "hostname": self.hostname,
+            "description": self.description,
+            "address_type": self.address_type_id,
+            "pools": [pool.name for pool in self.pools.all()],
+            "dhcp_group": self.dhcp_group.name if self.dhcp_group else None,
+            "expires": self.expires,
+            "changed": self.changed,
+            "changed_by": self.changed_by.username,
+            "last_notified": self.last_notified,
+        }
+
     def __str__(self):
         return self.hostname
 
@@ -941,9 +955,11 @@ class Host(DirtyFieldsMixin, models.Model):
                 user=user,
                 name=hostname,
                 content=address.address,
-                dns_type=DnsType.objects.A
-                if address.address.version == 4
-                else DnsType.objects.AAAA,
+                dns_type=(
+                    DnsType.objects.A
+                    if address.address.version == 4
+                    else DnsType.objects.AAAA
+                ),
                 host=self,
                 record=arecord if arecord else None,
             )
