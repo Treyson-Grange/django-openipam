@@ -12,6 +12,7 @@ from django.contrib.auth.models import Group
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from guardian.shortcuts import get_objects_for_user
 from openipam.dns.models import DnsRecord, Domain, DnsType, DnsView, DhcpDnsRecord
 from openipam.user.models import User
 from .base import APIModelViewSet, APIPagination
@@ -133,6 +134,24 @@ class DnsViewSet(APIModelViewSet):
         views = self.get_queryset()
         serializer = DnsViewSerializer(views, many=True)
         return Response(serializer.data)
+
+    @action(methods=["get"], detail=False)
+    def mine(self, request: Request, *args, **kwargs):
+        """Return a list of DNS records owned by the user."""
+        user_hosts = get_objects_for_user(
+            request.user,
+            [
+                "hosts.is_owner_host",
+                "hosts.change_host",
+            ],
+            any_perm=True,
+            use_groups=True,
+            with_superuser=False,
+        )
+        records = self.get_queryset().filter(host__in=user_hosts)
+        page = self.paginate_queryset(records)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     filter_related_field = "host"
     filter_perms = ["hosts.is_owner_host", "hosts.change_host"]
