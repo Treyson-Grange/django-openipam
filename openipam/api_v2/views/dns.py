@@ -61,7 +61,6 @@ class DnsViewSet(APIModelViewSet):
 
     def get_serializer_class(self):
         """Return the serializer class."""
-        # Necessary to use a different serializer for create
         if self.action == "create":
             return DNSCreateSerializer
         return self.serializer_class
@@ -80,8 +79,6 @@ class DnsViewSet(APIModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """Create a DNS record."""
-        # check permissions on domain. Can't rely on the permission class
-        # because we don't have the domain name yet.
         domain_segments = request.data["name"].split(".")
         domain_possibilities = [
             ".".join(domain_segments[i:]) for i in range(len(domain_segments))
@@ -107,8 +104,14 @@ class DnsViewSet(APIModelViewSet):
                 {"detail": "You do not have permission to add records to this domain."},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        # We have permission, so create the record
         return super().create(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        """Retrieve a DNS record by content."""
+        content = kwargs.get("pk")
+        dns_record = get_object_or_404(DnsRecord, id=content)
+        serializer = self.get_serializer(dns_record)
+        return Response(serializer.data)
 
     @action(
         detail=False,
