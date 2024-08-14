@@ -106,6 +106,30 @@ class DnsViewSet(APIModelViewSet):
             )
         return super().create(request, *args, **kwargs)
 
+    def update(self, request, *args, **kwargs):
+        """Override the update method to check if the new domain is valid."""
+        domain_segments = request.data.get("name", "").split(".")
+        domain_possibilities = [
+            ".".join(domain_segments[i:]) for i in range(len(domain_segments))
+        ]
+        domain_possibilities.reverse()
+
+        domain = None
+        for domain_name in domain_possibilities:
+            try:
+                domain = Domain.objects.get(name=domain_name)
+                break
+            except Domain.DoesNotExist:
+                continue
+
+        if not domain:
+            return Response(
+                {"detail": "Domain does not exist."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return super().update(request, *args, **kwargs)
+
     def retrieve(self, request, *args, **kwargs):
         """Retrieve a DNS record by content."""
         content = kwargs.get("pk")
