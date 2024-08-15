@@ -44,3 +44,6 @@ class RecentStatsSerializer(serializers.Serializer):
     users_today = serializers.IntegerField()
     users_week = serializers.IntegerField()
     users_month = serializers.IntegerField()
+    dns_today = serializers.IntegerField()
+    dns_week = serializers.IntegerField()
+    dns_month = serializers.IntegerField()

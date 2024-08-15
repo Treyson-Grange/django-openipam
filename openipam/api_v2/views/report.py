@@ -226,42 +226,40 @@ class RecentStatsViewSet(ReadOnlyModelViewSet):
     serializer_class = RecentStatsSerializer
     queryset = Host.objects.none()
 
-    def list(self, request):
-        hosts = Host.objects.all()
-        hosts_stats = QuerySetStats(
-            hosts, "changed", aggregate=Count("mac"), today=datetime.now()
+    def get_cached_stats(self, queryset, date_field, cache_prefix, aggregate=None):
+        stats = QuerySetStats(
+            queryset, date_field, aggregate=aggregate, today=datetime.now()
         )
+        today_cache_key = f"{cache_prefix}_today"
+        week_cache_key = f"{cache_prefix}_week"
+        month_cache_key = f"{cache_prefix}_month"
 
-        hosts_today = cache.get("hosts_today")
-        hosts_week = cache.get("hosts_week")
-        hosts_month = cache.get("hosts_month")
+        today_stats = cache.get(today_cache_key)
+        week_stats = cache.get(week_cache_key)
+        month_stats = cache.get(month_cache_key)
 
-        if hosts_today is None:
-            hosts_today = hosts_stats.this_day()
-            cache.set("hosts_today", hosts_today)
-        if hosts_week is None:
-            hosts_week = hosts_stats.this_week()
-            cache.set("hosts_week", hosts_week)
-        if hosts_month is None:
-            hosts_month = hosts_stats.this_month()
-            cache.set("hosts_month", hosts_month)
+        if today_stats is None:
+            today_stats = stats.this_day()
+            cache.set(today_cache_key, today_stats)
+        if week_stats is None:
+            week_stats = stats.this_week()
+            cache.set(week_cache_key, week_stats)
+        if month_stats is None:
+            month_stats = stats.this_month()
+            cache.set(month_cache_key, month_stats)
 
-        users = User.objects.all()
-        users_stats = QuerySetStats(users, "date_joined", today=datetime.now())
+        return today_stats, week_stats, month_stats
 
-        users_today = cache.get("users_today")
-        users_week = cache.get("users_week")
-        users_month = cache.get("users_month")
-
-        if users_today is None:
-            users_today = users_stats.this_day()
-            cache.set("users_today", users_today)
-        if users_week is None:
-            users_week = users_stats.this_week()
-            cache.set("users_week", users_week)
-        if users_month is None:
-            users_month = users_stats.this_month()
-            cache.set("users_month", users_month)
+    def list(self, request):
+        hosts_today, hosts_week, hosts_month = self.get_cached_stats(
+            Host.objects.all(), "changed", "hosts", aggregate=Count("mac")
+        )
+        users_today, users_week, users_month = self.get_cached_stats(
+            User.objects.all(), "date_joined", "users"
+        )
+        dns_today, dns_week, dns_month = self.get_cached_stats(
+            DnsRecord.objects.all(), "changed", "dns"
+        )
 
         data = {
             "hosts_today": hosts_today,
@@ -270,6 +268,9 @@ class RecentStatsViewSet(ReadOnlyModelViewSet):
             "users_today": users_today,
             "users_week": users_week,
             "users_month": users_month,
+            "dns_today": dns_today,
+            "dns_week": dns_week,
+            "dns_month": dns_month,
         }
 
         serializer = self.get_serializer(data)
