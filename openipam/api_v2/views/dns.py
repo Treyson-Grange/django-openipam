@@ -226,6 +226,7 @@ class DomainViewSet(APIModelViewSet):
     def get_queryset(self):
         # If listing, filter on the user
         if self.action == "list":
+            name = self.request.query_params.get("name", None)
             allowed_domains = get_objects_for_user(
                 self.request.user,
                 [
@@ -237,6 +238,10 @@ class DomainViewSet(APIModelViewSet):
                 use_groups=True,
                 with_superuser=True,
             )
+            if name:
+                return self.queryset.filter(pk__in=allowed_domains).filter(name__contains=name).select_related(
+                    "changed_by"
+                )
             return self.queryset.filter(pk__in=allowed_domains).select_related(
                 "changed_by"
             )

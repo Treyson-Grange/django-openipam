@@ -92,8 +92,8 @@ class DNSCreateSerializer(serializers.ModelSerializer):
                 pass
         except KeyError:
             data["content"] = data["text_content"]
-            data.pop("text_content")
-
+            
+        data.pop("text_content")# i can only pass null, which doesn't get dropped unless we do it here.
         data["dns_type"] = DnsType.objects.filter(name__iexact=data["dns_type"]).first()
         self.instance, create = DnsRecord.objects.add_or_update_record(**data)
 
