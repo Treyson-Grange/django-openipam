@@ -238,13 +238,10 @@ class DomainViewSet(APIModelViewSet):
                 use_groups=True,
                 with_superuser=True,
             )
-            if name:
-                return self.queryset.filter(pk__in=allowed_domains).filter(name__contains=name).select_related(
-                    "changed_by"
-                )
-            return self.queryset.filter(pk__in=allowed_domains).select_related(
-                "changed_by"
-            )
+            queryset = self.queryset.filter(pk__in=allowed_domains)
+            if name:    
+                queryset = queryset.filter(name__contains=name)
+
         return self.queryset
 
     def update(self, *args, **kwargs):
