@@ -56,6 +56,10 @@ class GroupSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     groups = GroupField(many=True, queryset=Group.objects.all())
     source = serializers.SerializerMethodField()
+    full_name = serializers.SerializerMethodField()
+
+    def get_full_name(self, obj):
+        return obj.first_name + " " + obj.last_name
 
     def get_source(self, obj):
         if obj.source is None:
@@ -69,6 +73,7 @@ class UserSerializer(serializers.ModelSerializer):
             "username",
             "first_name",
             "last_name",
+            "full_name",
             "email",
             "is_staff",
             "is_ipamadmin",

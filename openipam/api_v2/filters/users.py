@@ -2,7 +2,7 @@
 from rest_framework import filters
 import django_filters as df
 from django.contrib.auth import get_user_model
-from django.db.models import functions as dfn, Q
+from django.db.models import functions as dfn, Q, Value, CharField
 
 User = get_user_model()
 
@@ -53,9 +53,9 @@ class UserFilterSet(df.FilterSet):
             queryset = queryset.annotate(
                 full_name=dfn.Concat(
                     "first_name",
-                    dfn.Value(" "),
+                    Value(" "),
                     "last_name",
-                    output_field=dfn.CharField(),
+                    output_field=CharField(),
                 )
             ).filter(full_name__icontains=value)
         return queryset
