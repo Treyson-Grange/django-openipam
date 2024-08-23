@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 
 from ..filters.users import UserFilterSet, AdvancedSearchFilter
 
-from .base import APIPagination
+from .base import APIPagination, UserPagination
 from ..serializers.users import (
     RestrictedUserSerializer,
     UserSerializer,
@@ -77,7 +77,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     queryset = User.objects.prefetch_related("groups").all().order_by("-last_login")
     serializer_class = UserSerializer
-    pagination_class = APIPagination
+    pagination_class = UserPagination
     permission_classes = [permissions.DjangoModelPermissions]
     filter_backends = [
         DjangoFilterBackend,

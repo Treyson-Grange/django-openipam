@@ -33,6 +33,15 @@ class LogsPagination(APIPagination):
     max_page_size = 500
 
 
+class UserPagination(APIPagination):
+    """Pagination for user endpoints."""
+
+    # Current openIPAM does 250 max, so we'll keep that here, if we see a 
+    # performance hit, we can revert to just using the APIPagination.
+    page_size = 25
+    page_size_query_param = "page_size"
+    max_page_size = 250
+
 class APIModelViewSet(ModelViewSet):
     """Base API viewset."""
 
