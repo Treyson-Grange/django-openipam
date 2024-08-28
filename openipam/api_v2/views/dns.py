@@ -241,6 +241,7 @@ class DomainViewSet(APIModelViewSet):
             queryset = self.queryset.filter(pk__in=allowed_domains)
             if name:    
                 queryset = queryset.filter(name__contains=name)
+            return queryset
 
         return self.queryset
 
