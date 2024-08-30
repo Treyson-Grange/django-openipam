@@ -41,6 +41,9 @@ class DnsViewSet(APIModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = DnsFilter
 
+    lookup_field = "id"
+    lookup_value_regex = r"\d+"
+
     def get_queryset(self):
         queryset = super().get_queryset()
         host = self.request.query_params.get("host", None)
@@ -130,13 +133,13 @@ class DnsViewSet(APIModelViewSet):
 
         return super().update(request, *args, **kwargs)
 
-    def retrieve(self, request, *args, **kwargs):
-        """Retrieve a DNS record by content."""
-        content = kwargs.get("pk")
-        dns_record = get_object_or_404(DnsRecord, id=content)
-        serializer = self.get_serializer(dns_record)
-        return Response(serializer.data)
-
+    def retrieve(self, request, *args, id=None, **kwargs):
+        """Retrieve a DNS record by name."""
+        dns = DnsRecord.objects.get(id=id)
+        serializer = DNSSerializer(dns, context={"request": request})
+        data = serializer.data.copy()
+        return Response(data)
+    
     @action(
         detail=False,
         methods=["get"],
