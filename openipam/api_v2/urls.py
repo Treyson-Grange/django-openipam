@@ -43,4 +43,5 @@ urlpatterns = [
     path("get_csrf/", views.auth.get_csrf_token, name="get_csrf"),
     path("logout/", views.auth.logout_request, name="logout"),
     path("whoami/", views.auth.whoami, name="whoami"),
+    path("autocomplete/", include("openipam.autocomplete.urls")),
 ]
